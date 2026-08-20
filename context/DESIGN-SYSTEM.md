@@ -10,7 +10,6 @@ last_reviewed: "2026-08-17"
 > **Nguồn sự thật cho hình thức** — ngang vai với `ARCHITECTURE.md` cho backend và
 > `PROTOTYPE.md` cho kiến trúc thông tin.
 > Điền ở pha V, SAU khi viết context, **TRƯỚC khi dựng prototype** (`PROTOTYPE.md §4`).
-> Xoá hết dấu `_CHƯA ĐIỀN_` khi điền xong — `python3 scripts/gate.py V` bắt dấu này.
 >
 > **Vì sao trước prototype, không phải sau.** Dựng prototype trước rồi mới rút token ra thì
 > token chỉ là bản mô tả những màu đã lỡ chọn — mỗi màn một sắc xám khác nhau, chữ phụ không
@@ -70,9 +69,9 @@ ví dụ màn quản trị nội bộ và app cho khách hàng không dùng chun
 
 | Mục | Nội dung |
 |---|---|
-| Ba tính từ | _CHƯA ĐIỀN_ |
-| Neo tham chiếu (thật) | _CHƯA ĐIỀN_ |
-| Cố tình tránh | _CHƯA ĐIỀN_ |
+| Ba tính từ | **quen thuộc · rõ ràng · bình tĩnh** |
+| Neo tham chiếu (thật) | **App gọi điện mặc định của Android** (danh bạ → bấm gọi → màn cuộc gọi đến) và **Zalo, chỉ phần call** — hai app Authority dùng hằng ngày, nêu ra ở phỏng vấn mục 13 làm chuẩn "trông giống app thật" |
+| Cố tình tránh | Sáng tạo lại bố cục cuộc gọi — nút cúp máy phải tròn đỏ ở dưới, nút nghe tròn xanh, đúng chỗ mắt quen tìm. Tránh nền sáng ở màn cuộc gọi (chói khi gọi buổi tối, và video chìm). Tránh chữ mảnh, xám nhạt, icon không kèm nhãn |
 
 ## 2. Token
 
@@ -94,14 +93,14 @@ ví dụ màn quản trị nội bộ và app cho khách hàng không dùng chun
 
 | Token | Giá trị | Dùng cho |
 |---|---|---|
-| `--color-bg` | _CHƯA ĐIỀN_ | nền trang |
-| `--color-surface` | _CHƯA ĐIỀN_ | nền thẻ / hàng danh sách nổi trên nền trang |
-| `--color-text` | _CHƯA ĐIỀN_ | chữ chính |
-| `--color-text-muted` | _CHƯA ĐIỀN_ | chữ phụ, nhãn, chú thích |
-| `--color-primary` | _CHƯA ĐIỀN_ | hành động chính, thứ muốn người dùng bấm |
-| `--color-on-primary` | _CHƯA ĐIỀN_ | chữ nằm TRÊN nền `--color-primary` |
-| `--color-border` | _CHƯA ĐIỀN_ | viền input, đường kẻ chia |
-| `--color-danger` | _CHƯA ĐIỀN_ | lỗi, xoá, cảnh báo mất dữ liệu |
+| `--color-bg` | `#0E1116` | nền trang |
+| `--color-surface` | `#1A1F27` | nền thẻ / hàng danh sách nổi trên nền trang |
+| `--color-text` | `#F2F5F9` | chữ chính |
+| `--color-text-muted` | `#9CA9BC` | chữ phụ, nhãn, chú thích |
+| `--color-primary` | `#25C05C` | hành động chính — nút Gọi và nút Nghe |
+| `--color-on-primary` | `#06210F` | chữ / icon nằm TRÊN nền `--color-primary` |
+| `--color-border` | `#606E80` | viền, đường kẻ chia, viền nút phụ |
+| `--color-danger` | `#FF6B6B` | lỗi, và **nút Cúp máy / Từ chối** |
 
 ### 2.2 Chữ
 
@@ -110,10 +109,10 @@ ví dụ màn quản trị nội bộ và app cho khách hàng không dùng chun
 
 | Token | Giá trị | Dùng cho |
 |---|---|---|
-| `--font-sans` | _CHƯA ĐIỀN_ | họ chữ duy nhất (ưu tiên font hệ thống — không tải, không nháy chữ) |
-| `--text-sm` | _CHƯA ĐIỀN_ | chú thích, nhãn phụ |
-| `--text-base` | _CHƯA ĐIỀN_ | chữ thường |
-| `--text-xl` | _CHƯA ĐIỀN_ | tiêu đề màn hình |
+| `--font-sans` | `system-ui, -apple-system, Roboto, sans-serif` | họ chữ duy nhất — font hệ thống, không tải, không nháy chữ |
+| `--text-sm` | `14px` | chú thích, nhãn dưới icon |
+| `--text-base` | `17px` | chữ thường — to hơn mặc định vì cầm tay, đọc bằng liếc |
+| `--text-xl` | `28px` | tên người trên màn cuộc gọi đến / đang gọi |
 
 ### 2.3 Nhịp · bo góc · đổ bóng
 
@@ -122,11 +121,11 @@ ví dụ màn quản trị nội bộ và app cho khách hàng không dùng chun
 
 | Token | Giá trị | Dùng cho |
 |---|---|---|
-| `--space-sm` | _CHƯA ĐIỀN_ | khoảng hẹp trong một khối |
-| `--space-md` | _CHƯA ĐIỀN_ | khoảng chuẩn giữa các khối |
-| `--space-lg` | _CHƯA ĐIỀN_ | khoảng giữa các vùng lớn của màn hình |
-| `--radius` | _CHƯA ĐIỀN_ | bo góc nút, thẻ, input — một giá trị dùng chung |
-| `--shadow` | _CHƯA ĐIỀN_ | đổ bóng thẻ nổi (chỉ một mức) |
+| `--space-sm` | `8px` | khoảng hẹp trong một khối |
+| `--space-md` | `16px` | khoảng chuẩn giữa các khối |
+| `--space-lg` | `32px` | khoảng giữa các vùng lớn của màn hình |
+| `--radius` | `14px` | bo góc thẻ và nút chữ nhật. Nút tròn (gọi/nghe/cúp) dùng bo tròn hoàn toàn, không qua token này |
+| `--shadow` | `0 2px 8px rgba(0,0,0,0.45)` | đổ bóng thẻ nổi — một mức duy nhất |
 
 ### 2.4 Điểm gãy
 
@@ -137,7 +136,7 @@ ví dụ màn quản trị nội bộ và app cho khách hàng không dùng chun
 
 | Điểm gãy | Giá trị | Thiết kế trước cho |
 |---|---|---|
-| hẹp → rộng | _CHƯA ĐIỀN_ | _CHƯA ĐIỀN_ (điện thoại trước / máy tính trước) |
+| hẹp → rộng | `600px` | **điện thoại trước** — persona cầm Android một tay. Trên 600px chỉ giới hạn bề rộng nội dung và canh giữa, không đổi bố cục |
 
 ## 3. Tương phản — `gate.py V` tự tính
 
@@ -182,11 +181,17 @@ ví dụ màn quản trị nội bộ và app cho khách hàng không dùng chun
 
 | # | Component | Dùng ở màn | Trạng thái bắt buộc |
 |---|---|---|---|
-| C1 | Nút chính | _CHƯA ĐIỀN_ | mặc định · đang gửi (khoá lại) · bị vô hiệu |
-| C2 | Trường nhập | _CHƯA ĐIỀN_ | rỗng · đang gõ · sai (kèm câu báo lỗi tiếng Việt) |
-| C3 | Thẻ / hàng danh sách | _CHƯA ĐIỀN_ | mặc định · đang chọn · đang tải (khung xám) |
-| C4 | Khối trạng thái rỗng | _CHƯA ĐIỀN_ | một câu giải thích + đúng một nút hành động |
-| C5 | Khối báo lỗi | _CHƯA ĐIỀN_ | nói được làm gì tiếp · có đường thử lại |
+| C1 | Nút tròn hành động (gọi · nghe · từ chối · cúp máy) | S1, S2, S3, S4 | mặc định · đang xử lý (khoá lại, không bấm được lần hai) · bị vô hiệu (chưa kết nối được máy chủ) |
+| C3 | Hàng danh bạ — avatar + tên + nút gọi | S1 | mặc định · đang nhấn · bị vô hiệu |
+| C5 | Khối báo lỗi / màn chặn | S0, S5 | nói rõ hỏng gì và làm gì tiếp · có đường đi tiếp (nút mở Cài đặt, hoặc nút Thử lại) |
+| C6 | Banner trạng thái kết nối | S3, S4 | đang kết nối · đang kết nối lại (đếm giây) · đã kết thúc |
+| C7 | Ô video người tham gia | S4 | có hình · tắt cam (hiện avatar + tên) · đang chờ người kia vào |
+| C8 | Hàng nút điều khiển trong cuộc gọi | S4 | mic bật/tắt · cam bật/tắt · đổi cam · cúp máy — mỗi nút có nhãn chữ dưới icon |
+
+`C2` (trường nhập) và `C4` (trạng thái rỗng) **cố tình không có**: app không có ô nhập nào —
+danh bạ cắm cứng, không tìm kiếm, không nhập tên phòng — và danh bạ luôn có 2 người nên
+không tồn tại màn rỗng. Xoá khỏi kho thay vì để dòng trống, theo đúng ghi chú "component
+không màn nào dùng là component tưởng tượng".
 
 <!-- Thêm C6, C7… nếu bản đồ màn hình cần. Ít hơn 5 khối cũng được — xoá dòng không dùng. -->
 
@@ -197,9 +202,9 @@ ví dụ màn quản trị nội bộ và app cho khách hàng không dùng chun
 
 | Khuôn | Chốt |
 |---|---|
-| Rỗng | _CHƯA ĐIỀN_ (một câu nói vì sao trống + đúng một nút mở việc đầu tiên — không để trắng trơn) |
-| Lỗi | _CHƯA ĐIỀN_ (tiếng Việt, nói phải làm gì tiếp, giữ nguyên dữ liệu người dùng đang nhập) |
-| Đang tải | _CHƯA ĐIỀN_ (khung xám giữ đúng chỗ nội dung sắp hiện — không nhảy layout) |
+| Rỗng | Không có màn rỗng thật (danh bạ luôn 2 người). Khuôn duy nhất thuộc loại này: **ô video khi người kia tắt cam** → avatar tròn lớn + tên ở giữa ô, nền `--color-surface`, không để khung đen trơn |
+| Lỗi | Tiếng Việt, một câu nói **hỏng gì**, một câu nói **làm gì tiếp**, và đúng một nút hành động. Không hiện mã lỗi kỹ thuật lên UI (log ra `adb logcat` cho dev). Không bao giờ để màn trắng hay treo im — mọi nhánh lỗi phải kết thúc ở một màn có nút bấm được |
+| Đang tải | Ô video giữ đúng kích thước sẵn với avatar bên trong, video hiện lên thì thay tại chỗ — **không nhảy layout**. Chờ kết nối thì banner ở đỉnh màn hình, không phủ vòng xoay toàn màn (che mất nút Huỷ / Cúp máy là ca hỏng thật) |
 
 ## 6. Ràng buộc thực thi
 

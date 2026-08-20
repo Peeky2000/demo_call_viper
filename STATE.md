@@ -91,7 +91,11 @@ Meta ra câu hỏi khó dựa trên context, chấm PASS/FAIL. **Pha V**: 3–5 
 
 | Ngày | Pha | Câu hỏi | Phán quyết | Ghi chú |
 |---|---|---|---|---|
-| | | | | |
+| 2026-08-20 | V | Không có push, vậy A bấm gọi khi B **chưa mở app** thì A thấy gì, và bao lâu thì thôi? | PASS | FAIL lần đầu, đã vá: Tài liệu để màn "Đang gọi…" quay vô hạn. Chốt timeout 30 giây → "Không trả lời" → về danh bạ (`ARCHITECTURE.md §7a`) |
+| 2026-08-20 | V | Token ký trong app sống bao lâu? Hết hạn **giữa cuộc gọi** thì sao? | PASS | FAIL lần đầu, đã vá: Không chỗ nào nói. Chốt TTL 2 giờ, cấp mới mỗi lần vào phòng; `livekit_client` không tự gia hạn nên cuộc >2h sẽ rớt — chấp nhận và ghi rõ (`§7b`) |
+| 2026-08-20 | V | `roomName` tất định nên cuộc mới dùng lại đúng phòng cũ. Cuộc trước kết thúc bẩn, một bên còn kẹt trong phòng thì sao? | PASS | FAIL lần đầu, đã vá: Chốt `identity` = `Contact.id` để LiveKit đá bản cũ ra. Identity ngẫu nhiên sẽ làm bên kia thấy hai ô video của cùng một người (`§7c`) |
+| 2026-08-20 | V | AC-7 đòi "ở background tiếng vẫn thông", nhưng `ARCHITECTURE §7` lại nói có thể phải coi như kết thúc. **Hai chỗ mâu thuẫn — cái nào thắng?** | PASS | FAIL lần đầu, đã vá: Mâu thuẫn thật trong chính tài liệu. Chốt: vòng 1 không làm foreground service, AC-7 thu về "chuyển nền ngắn ~30 giây"; thoát hẳn thì `disconnect()` tường minh. Foreground service đẩy backlog (`§7d`) |
+| 2026-08-20 | V | Success metric đòi chạy 7/7 AC trên **máy thật + emulator**, mà emulator mic là giả. Vậy AC-2 "nghe được tiếng nhau" kiểm bằng cách nào? | PASS | FAIL lần đầu, đã vá: Metric hứa thứ không kiểm được. Chốt cách kiểm bất đối xứng: tiếng soi bằng tai ở đầu máy thật, đầu emulator soi bằng chỉ báo mức âm của LiveKit (`PRD.md §3` AC-2) |
 
 ---
 

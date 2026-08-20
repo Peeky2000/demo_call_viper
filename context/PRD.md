@@ -54,12 +54,12 @@ Chân dung chi tiết + năng lực từng vai + ma trận phân quyền: `conte
 | # | Làm được gì | Coi là xong khi | Capability |
 |---|---|---|---|
 | AC-1 | Mở app thấy danh bạ 2 người, bấm một người để gọi | Máy bên kia hiện màn "cuộc gọi đến" kèm tên người gọi trong vòng 3 giây | |
-| AC-2 | Bấm **Nghe** để vào cuộc gọi | Hai bên thấy hình nhau và nghe được tiếng nhau | |
+| AC-2 | Bấm **Nghe** để vào cuộc gọi | Hai bên thấy hình nhau và nghe được tiếng nhau. **Cách kiểm**: hình soi bằng mắt ở cả hai đầu; tiếng soi bằng tai trên máy Android thật, còn phía emulator (mic giả) dùng chỉ báo mức âm của LiveKit thay cho tai người | |
 | AC-3 | Bấm **Từ chối** để khước từ | Máy gọi hiện "bị từ chối" rồi tự về danh bạ, không màn nào treo | |
 | AC-4 | Điều khiển trong cuộc gọi: tắt/bật mic, tắt/bật cam, đổi cam trước-sau, cúp máy | Mỗi nút phản hồi thấy được ngay trên màn hình, và bên kia thấy đúng trạng thái đó | |
 | AC-5 | Từ chối quyền mic hoặc camera | Hiện màn giải thích + nút mở Cài đặt hệ thống; không crash, không màn trắng | |
 | AC-6 | Một bên rớt mạng hoặc thoát đột ngột | Bên kia hiện trạng thái rõ ràng trong vài giây rồi về danh bạ | |
-| AC-7 | Đang gọi mà chuyển sang background, rồi thoát hẳn app | Ở background tiếng vẫn thông, quay lại vẫn đang trong cuộc gọi; thoát hẳn thì cuộc gọi kết thúc gọn ở **cả hai** máy | |
+| AC-7 | Đang gọi mà chuyển sang background **ngắn** (bấm Home rồi quay lại trong ~30 giây), rồi thoát hẳn app | Quay lại vẫn đang trong cuộc gọi và tiếng vẫn thông; thoát hẳn thì cuộc gọi kết thúc gọn ở **cả hai** máy. Giữ tiếng ở nền lâu cần foreground service — ngoài scope vòng 1 (`ARCHITECTURE.md §7d`) | |
 
 <!-- Dòng AC trống không được gate đếm — điền đủ ô "Làm được gì" hoặc xoá dòng thừa. -->
 

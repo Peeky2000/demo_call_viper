@@ -43,7 +43,12 @@ last_reviewed: "2026-08-17"
 
 | # | Màn hình | Mục đích (theo persona nào) | Thông tin bắt buộc — theo thứ tự ưu tiên | Hành động chính | Rỗng / lỗi / đang tải |
 |---|---|---|---|---|---|
-| S1 | _CHƯA ĐIỀN_ | | | | |
+| S0 | Chặn thiếu cấu hình | Người thử — biết ngay vì sao app không chạy được | Thiếu biến nào (liệt kê đúng tên) → cách nạp qua `--dart-định` | Không có (màn cụt) | Lỗi: đây chính là màn lỗi · Rỗng/tải: không có |
+| S1 | Danh bạ | Người thử — nhìn là biết app gọi điện, bấm một người là gọi | Mình đang là ai → 2 liên hệ (avatar + tên) → nút gọi từng dòng | Bấm một người → gọi | Rỗng: không có (luôn 2 người) · Lỗi: banner "chưa kết nối được máy chủ", nút Gọi mờ · Tải: banner "đang kết nối" |
+| S2 | Cuộc gọi đến | Người nhận — quyết nghe hay không trong 2 giây | Tên người gọi (chữ lớn nhất màn) → avatar → hai nút Nghe / Từ chối | Bấm Nghe hoặc Từ chối | Lỗi: bên kia đã cúp → "Cuộc gọi đã kết thúc" rồi tự về S1 |
+| S3 | Đang gọi | Người gọi — biết máy bên kia đang đổ chuông, và huỷ được | Tên người được gọi → trạng thái ("Đang gọi…") → nút Huỷ | Bấm Huỷ | Lỗi: bị từ chối → "Bị từ chối" rồi về S1 · Tải: chính là trạng thái của màn |
+| S4 | Trong cuộc gọi | Cả hai — nói chuyện, và điều khiển được mic/cam | Video người kia (toàn màn) → video mình (ô nhỏ góc) → banner trạng thái → hàng nút điều khiển | Mic · Cam · Đổi cam · Cúp máy | Rỗng: người kia tắt cam → avatar + tên · Lỗi: rớt mạng → banner "đang kết nối lại" đếm giây · Tải: ô video giữ chỗ sẵn |
+| S5 | Quyền bị từ chối | Người thử — hiểu vì sao không gọi được và tự sửa được | Thiếu quyền nào (mic / camera) → vì sao cần → nút mở Cài đặt | Bấm mở Cài đặt hệ thống | Lỗi: đây chính là màn lỗi |
 
 ## 2. Sơ đồ điều hướng
 
@@ -52,8 +57,34 @@ last_reviewed: "2026-08-17"
 -->
 
 ```
-_CHƯA ĐIỀN_
+  mở app
+    │
+    ├─ thiếu biến ──► S0 Chặn cấu hình  (cụt — sửa --dart-define rồi mở lại)
+    │
+    └─ đủ ──► S1 Danh bạ ◄──────────────────────────────────────┐
+                 │                                              │
+                 ├─ bấm gọi ─┬─ quyền bị từ chối ──► S5 Quyền ──┘
+                 │           │
+                 │           └─ có quyền ──► S3 Đang gọi
+                 │                              │
+                 │                              ├─ bấm Huỷ ─────────────┐
+                 │                              ├─ bị từ chối ──────────┤
+                 │                              └─ bên kia bấm Nghe ──► S4 Trong cuộc gọi
+                 │                                                         │
+                 └─ nhận lời mời ──► S2 Cuộc gọi đến                       │
+                                        ├─ Từ chối ────────────────────────┤
+                                        └─ Nghe ──────────────────────► S4 │
+                                                                           │
+                        S4 kết thúc: cúp máy · bên kia thoát · rớt mạng ────┘
 ```
+
+**Hai chỗ cố ý** trong sơ đồ:
+
+- **S0 là màn cụt** — không có đường ra. Thiếu cấu hình thì sửa `--dart-define` rồi mở lại app;
+  cho đi tiếp vào danh bạ chỉ để hỏng sâu hơn ở chỗ khó đoán hơn.
+- **Mọi nhánh kết thúc đều về S1**, kể cả nhánh lỗi. Không nhánh nào dừng ở màn không có nút
+  bấm được — đây là phản ứng trực tiếp với nỗi đau "bấm trúng chỗ nào là hỏng chỗ đó"
+  (`PRD.md §1`).
 
 ## 3. Map AC ↔ màn hình
 
@@ -62,7 +93,13 @@ _CHƯA ĐIỀN_
 
 | AC | Màn hình | Ghi chú |
 |---|---|---|
-| AC-1 | _CHƯA ĐIỀN_ | |
+| AC-1 | S1 → S2 | Bấm gọi ở S1, máy kia hiện S2 kèm tên người gọi trong ≤3 giây |
+| AC-2 | S2 → S4 | Bấm Nghe ở S2 → cả hai vào S4, thấy hình và nghe tiếng nhau |
+| AC-3 | S2 → S3 → S1 | Bấm Từ chối ở S2 → S3 của bên gọi hiện "Bị từ chối" → tự về S1 |
+| AC-4 | S4 | Hàng nút điều khiển: mic, cam, đổi cam, cúp máy — mỗi nút phản hồi thấy được ngay |
+| AC-5 | S1 → S5 | Từ chối quyền lúc bấm gọi → S5, có nút mở Cài đặt; không crash, không màn trắng |
+| AC-6 | S4 → S1 | Bên kia rớt mạng/thoát → banner ở S4 rồi tự về S1 |
+| AC-7 | S4 | Background: giữ nguyên S4 khi quay lại. Thoát hẳn: ngắt phòng tường minh để bên kia thoát treo |
 
 ## 4. File prototype tương tác
 

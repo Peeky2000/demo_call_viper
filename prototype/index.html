@@ -1,0 +1,316 @@
+<!-- KaiCall — prototype pha V.
+     Tài liệu chốt IA, KHÔNG phải code nền: pha I dựng lại bằng Flutter theo PROTOTYPE.md §1.
+     Mọi màu/chữ/nhịp lấy từ context/DESIGN-SYSTEM.md §2 — không hardcode, không khai token mới. -->
+<title>KaiCall</title>
+<style>
+:root {
+  --color-bg: #0E1116;
+  --color-surface: #1A1F27;
+  --color-text: #F2F5F9;
+  --color-text-muted: #9CA9BC;
+  --color-primary: #25C05C;
+  --color-on-primary: #06210F;
+  --color-border: #606E80;
+  --color-danger: #FF6B6B;
+
+  --font-sans: system-ui, -apple-system, Roboto, sans-serif;
+  --text-sm: 14px;
+  --text-base: 17px;
+  --text-xl: 28px;
+
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 32px;
+  --radius: 14px;
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font: var(--text-base)/1.5 var(--font-sans);
+  padding: var(--space-md);
+}
+
+/* ── Thanh chuyển màn: chỉ của prototype, app thật không có ───────────────── */
+.nav { display: flex; flex-wrap: wrap; gap: var(--space-sm); max-width: 600px; margin: 0 auto var(--space-md); }
+.nav button {
+  font: var(--text-sm)/1 var(--font-sans);
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space-sm) var(--space-md);
+  cursor: pointer;
+}
+.nav button[aria-current="true"] { color: var(--color-on-primary); background: var(--color-primary); border-color: var(--color-primary); }
+
+/* ── Khung điện thoại ─────────────────────────────────────────────────────── */
+.phone {
+  max-width: 600px; margin: 0 auto; min-height: 640px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: var(--space-md);
+  display: flex; flex-direction: column;
+}
+.screen { display: none; flex: 1; flex-direction: column; }
+.screen[data-on] { display: flex; }
+
+.title { font-size: var(--text-xl); font-weight: 600; }
+.muted { color: var(--color-text-muted); font-size: var(--text-sm); }
+.center { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-md); text-align: center; }
+
+/* C6 — banner trạng thái kết nối */
+.banner {
+  font-size: var(--text-sm);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space-sm) var(--space-md);
+  margin-bottom: var(--space-md);
+}
+.banner.err { color: var(--color-danger); border-color: var(--color-danger); }
+
+/* C3 — hàng danh bạ */
+.row {
+  display: flex; align-items: center; gap: var(--space-md);
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  padding: var(--space-md);
+  margin-bottom: var(--space-sm);
+}
+.row .grow { flex: 1; min-width: 0; }
+.avatar {
+  width: 48px; height: 48px; border-radius: 999px; flex: none;
+  background: var(--color-border); color: var(--color-text);
+  display: grid; place-items: center; font-weight: 600;
+}
+.avatar.lg { width: 112px; height: 112px; font-size: var(--text-xl); }
+
+/* C1 — nút tròn hành động */
+.fab {
+  width: 64px; height: 64px; border-radius: 999px; flex: none;
+  border: none; cursor: pointer;
+  display: grid; place-items: center;
+  font-size: var(--text-base); font-family: var(--font-sans);
+}
+.fab.sm { width: 44px; height: 44px; font-size: var(--text-sm); }
+.fab.go { background: var(--color-primary); color: var(--color-on-primary); }
+.fab.stop { background: var(--color-danger); color: var(--color-on-primary); }
+.fab[disabled] { background: var(--color-surface); color: var(--color-text-muted); cursor: not-allowed; }
+.fabs { display: flex; gap: var(--space-lg); justify-content: center; }
+
+/* C7 — ô video */
+.video {
+  flex: 1; min-height: 220px;
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  display: grid; place-items: center; gap: var(--space-sm);
+  position: relative;
+}
+.video .self {
+  position: absolute; right: var(--space-md); bottom: var(--space-md);
+  width: 84px; height: 112px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  display: grid; place-items: center; font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+/* C8 — hàng nút điều khiển */
+.ctrls { display: flex; justify-content: space-around; padding-top: var(--space-md); }
+.ctrl { display: flex; flex-direction: column; align-items: center; gap: var(--space-sm); }
+.ctrl .muted { font-size: var(--text-sm); }
+
+/* C5 — khối báo lỗi / màn chặn */
+.err-box {
+  background: var(--color-surface);
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius);
+  padding: var(--space-md);
+  text-align: left;
+}
+.err-box code { color: var(--color-text-muted); font-size: var(--text-sm); display: block; }
+
+.btn {
+  font: var(--text-base)/1 var(--font-sans);
+  background: var(--color-primary); color: var(--color-on-primary);
+  border: none; border-radius: var(--radius);
+  padding: var(--space-md) var(--space-lg); cursor: pointer;
+}
+.chips { display: flex; gap: var(--space-sm); justify-content: center; padding-top: var(--space-md); flex-wrap: wrap; }
+.chips button {
+  font: var(--text-sm)/1 var(--font-sans);
+  background: var(--color-bg); color: var(--color-text-muted);
+  border: 1px dashed var(--color-border); border-radius: var(--radius);
+  padding: var(--space-sm); cursor: pointer;
+}
+</style>
+
+<nav class="nav" id="nav"></nav>
+
+<main class="phone">
+
+  <!-- S0 — Chặn thiếu cấu hình (màn cụt) -->
+  <section class="screen" id="S0">
+    <div class="center">
+      <div class="title">Chưa chạy được</div>
+      <p class="muted">Thiếu thông tin kết nối LiveKit. Sửa rồi mở lại app.</p>
+      <div class="err-box">
+        Thiếu 2 giá trị:
+        <code>KAICALL_LIVEKIT_API_KEY</code>
+        <code>KAICALL_LIVEKIT_API_SECRET</code>
+      </div>
+      <p class="muted">Nạp qua <code>--dart-define</code> khi chạy. Xem <code>make doctor</code>.</p>
+    </div>
+  </section>
+
+  <!-- S1 — Danh bạ -->
+  <section class="screen" id="S1">
+    <div class="banner" id="s1-banner">Đã kết nối · bạn đang là <strong>Long</strong></div>
+    <div class="title">Danh bạ</div>
+    <p class="muted" style="margin-bottom: var(--space-md)">Bấm một người để gọi</p>
+
+    <div class="row">
+      <div class="avatar">M</div>
+      <div class="grow"><div>Minh</div><div class="muted">Máy Android thật</div></div>
+      <button class="fab sm go" id="s1-call-1">Gọi</button>
+    </div>
+    <div class="row">
+      <div class="avatar">N</div>
+      <div class="grow"><div>Ngọc</div><div class="muted">Emulator</div></div>
+      <button class="fab sm go" id="s1-call-2">Gọi</button>
+    </div>
+
+    <div class="chips">
+      <button data-s1="ok">trạng thái: đã kết nối</button>
+      <button data-s1="loading">đang kết nối</button>
+      <button data-s1="err">lỗi — không tới được máy chủ</button>
+    </div>
+  </section>
+
+  <!-- S2 — Cuộc gọi đến -->
+  <section class="screen" id="S2">
+    <div class="center">
+      <p class="muted">Cuộc gọi đến</p>
+      <div class="avatar lg">M</div>
+      <div class="title">Minh</div>
+      <p class="muted" id="s2-sub">đang gọi bạn…</p>
+      <div class="fabs" style="padding-top: var(--space-lg)">
+        <div class="ctrl"><button class="fab stop" data-go="S1">Từ chối</button><span class="muted">Từ chối</span></div>
+        <div class="ctrl"><button class="fab go" data-go="S4">Nghe</button><span class="muted">Nghe</span></div>
+      </div>
+    </div>
+    <div class="chips">
+      <button data-s2="ring">đang đổ chuông</button>
+      <button data-s2="gone">bên kia đã cúp</button>
+    </div>
+  </section>
+
+  <!-- S3 — Đang gọi -->
+  <section class="screen" id="S3">
+    <div class="center">
+      <div class="avatar lg">N</div>
+      <div class="title">Ngọc</div>
+      <p class="muted" id="s3-sub">Đang gọi…</p>
+      <div class="ctrl" style="padding-top: var(--space-lg)">
+        <button class="fab stop" data-go="S1">Huỷ</button><span class="muted">Huỷ</span>
+      </div>
+    </div>
+    <div class="chips">
+      <button data-s3="calling">đang gọi</button>
+      <button data-s3="rejected">bị từ chối</button>
+    </div>
+  </section>
+
+  <!-- S4 — Trong cuộc gọi -->
+  <section class="screen" id="S4">
+    <div class="banner" id="s4-banner">Đã kết nối · 00:12</div>
+    <div class="video" id="s4-video">
+      <div class="avatar lg" id="s4-remote-avatar">M</div>
+      <div class="muted" id="s4-remote-label">Minh đã tắt camera</div>
+      <div class="self">Bạn</div>
+    </div>
+    <div class="ctrls">
+      <div class="ctrl"><button class="fab sm go" id="s4-mic">Mic</button><span class="muted">Tắt mic</span></div>
+      <div class="ctrl"><button class="fab sm go" id="s4-cam">Cam</button><span class="muted">Tắt cam</span></div>
+      <div class="ctrl"><button class="fab sm go">Đổi</button><span class="muted">Đổi cam</span></div>
+      <div class="ctrl"><button class="fab stop" data-go="S1">Cúp</button><span class="muted">Cúp máy</span></div>
+    </div>
+    <div class="chips">
+      <button data-s4="ok">có hình hai bên</button>
+      <button data-s4="nocam">người kia tắt cam</button>
+      <button data-s4="reconnect">đang kết nối lại</button>
+      <button data-s4="left">người kia đã thoát</button>
+    </div>
+  </section>
+
+  <!-- S5 — Quyền bị từ chối -->
+  <section class="screen" id="S5">
+    <div class="center">
+      <div class="title">Cần quyền micrô và camera</div>
+      <div class="err-box">
+        KaiCall cần micrô để bạn nói, và camera để bên kia nhìn thấy bạn.
+        Bạn đã từ chối trước đó, nên phải bật lại trong Cài đặt.
+      </div>
+      <button class="btn">Mở Cài đặt</button>
+      <p class="muted">Bật xong quay lại đây là gọi được.</p>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  const SCREENS = [
+    ['S0', 'S0 Chặn cấu hình'], ['S1', 'S1 Danh bạ'], ['S2', 'S2 Cuộc gọi đến'],
+    ['S3', 'S3 Đang gọi'], ['S4', 'S4 Trong cuộc gọi'], ['S5', 'S5 Quyền bị từ chối'],
+  ];
+  const nav = document.getElementById('nav');
+  SCREENS.forEach(([id, label]) => {
+    const b = document.createElement('button');
+    b.textContent = label;
+    b.onclick = () => go(id);
+    b.dataset.for = id;
+    nav.appendChild(b);
+  });
+
+  function go(id) {
+    document.querySelectorAll('.screen').forEach(s => s.toggleAttribute('data-on', s.id === id));
+    nav.querySelectorAll('button').forEach(b => b.setAttribute('aria-current', String(b.dataset.for === id)));
+    location.hash = id;
+  }
+  document.querySelectorAll('[data-go]').forEach(el => el.onclick = () => go(el.dataset.go));
+  document.getElementById('s1-call-1').onclick = () => go('S3');
+  document.getElementById('s1-call-2').onclick = () => go('S3');
+
+  // Trạng thái rỗng / lỗi / đang tải của từng màn — bấm chip để xem
+  const set = (sel, html) => document.querySelector(sel).innerHTML = html;
+  const on = (attr, fn) => document.querySelectorAll('[data-' + attr + ']')
+    .forEach(b => b.onclick = () => fn(b.dataset[attr]));
+
+  on('s1', v => {
+    const el = document.getElementById('s1-banner');
+    el.classList.toggle('err', v === 'err');
+    el.innerHTML = { ok: 'Đã kết nối · bạn đang là <strong>Long</strong>',
+                     loading: 'Đang kết nối tới máy chủ…',
+                     err: 'Chưa kết nối được máy chủ — thử lại sau vài giây' }[v];
+    document.querySelectorAll('#S1 .fab').forEach(b => b.disabled = (v !== 'ok'));
+  });
+  on('s2', v => set('#s2-sub', v === 'ring' ? 'đang gọi bạn…' : 'Cuộc gọi đã kết thúc'));
+  on('s3', v => set('#s3-sub', v === 'calling' ? 'Đang gọi…' : 'Bị từ chối'));
+  on('s4', v => {
+    const banner = document.getElementById('s4-banner');
+    banner.classList.toggle('err', v === 'reconnect' || v === 'left');
+    banner.textContent = { ok: 'Đã kết nối · 00:12', nocam: 'Đã kết nối · 00:12',
+                           reconnect: 'Đang kết nối lại… 3s', left: 'Người kia đã thoát' }[v];
+    set('#s4-remote-label', { ok: 'Minh · đang bật camera', nocam: 'Minh đã tắt camera',
+                              reconnect: 'Đang chờ hình…', left: 'Cuộc gọi kết thúc' }[v]);
+  });
+
+  go(SCREENS.some(([id]) => id === location.hash.slice(1)) ? location.hash.slice(1) : 'S1');
+</script>
