@@ -30,40 +30,61 @@ class ContactsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(T.spaceLg, T.spaceMd, T.spaceLg, T.spaceSm),
+            // Tiêu đề
+            const Padding(
+              padding: EdgeInsets.fromLTRB(T.spaceLg, T.spaceMd, T.spaceLg, T.spaceMd),
+              child: Text('KaiCall',
+                  style: TextStyle(
+                      fontSize: T.textXl, color: T.text, fontWeight: FontWeight.w700)),
+            ),
+
+            // Chọn danh tính. Không có đăng nhập (PRD.md §7) nên đây là cách
+            // DUY NHẤT nói cho app biết máy này là ai. Hai máy phải chọn hai
+            // vai khác nhau — cùng vai thì LiveKit đá một máy ra vì trùng
+            // identity (ARCHITECTURE.md §7c). Vì vậy nó đứng trên cùng và có
+            // nhãn nói rõ việc phải làm, không phải một link chữ nhỏ.
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: T.spaceLg),
+              padding: const EdgeInsets.all(T.spaceMd),
+              decoration: BoxDecoration(
+                color: T.surface,
+                borderRadius: BorderRadius.circular(T.radius),
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  const Text('KaiCall',
-                      style: TextStyle(
-                          fontSize: T.textXl, color: T.text, fontWeight: FontWeight.w700)),
-                  const SizedBox(height: T.spaceSm / 2),
+                  const Text('Máy này là ai?',
+                      style: TextStyle(fontSize: T.textSm, color: T.textMuted)),
+                  const SizedBox(height: T.spaceSm),
                   Row(
                     children: <Widget>[
-                      Text('Bạn đang là ${state.self.displayName}',
-                          style: const TextStyle(fontSize: T.textSm, color: T.textMuted)),
-                      const SizedBox(width: T.spaceSm),
-                      // Đổi danh tính: để một máy đóng vai nào cũng được khi
-                      // thử với emulator (PRD.md §7 đăng nhập = không có).
                       for (final Contact c in kDemoContacts)
-                        if (c.id != state.self.id)
-                          TextButton(
-                            onPressed: () => onSwitchSelf(c),
-                            child: Text('đổi sang ${c.displayName}',
-                                style: const TextStyle(
-                                    fontSize: T.textSm, color: T.primary)),
+                        Padding(
+                          padding: const EdgeInsets.only(right: T.spaceSm),
+                          child: _IdentityChip(
+                            key: Key('be-${c.id}'),
+                            contact: c,
+                            selected: c.id == state.self.id,
+                            onTap: () => onSwitchSelf(c),
                           ),
+                        ),
                     ],
                   ),
                 ],
               ),
             ),
+            const SizedBox(height: T.spaceMd),
             StatusBanner(
               text: state.lobbyConnected
                   ? 'Đã kết nối'
                   : 'Chưa kết nối được máy chủ — chưa gọi được',
               bad: !state.lobbyConnected,
+            ),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(T.spaceLg, T.spaceSm, T.spaceLg, T.spaceSm),
+              child: Text('GỌI CHO',
+                  style: TextStyle(
+                      fontSize: T.textSm, color: T.textMuted, letterSpacing: 1.2)),
             ),
             Expanded(
               child: ListView.separated(
@@ -110,11 +131,81 @@ class ContactsScreen extends StatelessWidget {
                 },
               ),
             ),
+            // Danh bạ chỉ có 1 dòng (2 người, mình là một) nên phần dưới trống
+            // trơn. Chỗ trống đó phải nói được việc tiếp theo, không để đen.
+            Padding(
+              padding: const EdgeInsets.all(T.spaceLg),
+              child: Column(
+                children: <Widget>[
+                  const Icon(Icons.phonelink_ring, color: T.border, size: 40),
+                  const SizedBox(height: T.spaceMd),
+                  Text(
+                    'Mở KaiCall ở máy thứ hai, chọn '
+                    '"${others.isEmpty ? '' : others.first.displayName}" ở đó, '
+                    'rồi bấm nút gọi ở đây.',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: T.textSm, color: T.textMuted),
+                  ),
+                  const SizedBox(height: T.spaceSm),
+                  const Text(
+                    'Hai máy phải chọn hai người khác nhau.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: T.textSm, color: T.textMuted),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
     );
   }
+}
+
+/// Chip chọn danh tính. Cái đang chọn tô nền chính để nhìn một cái là biết
+/// máy này đang đóng vai ai — đây là thứ hay bấm nhầm nhất khi thử hai máy.
+class _IdentityChip extends StatelessWidget {
+  const _IdentityChip({
+    super.key,
+    required this.contact,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final Contact contact;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Material(
+        color: selected ? T.primary : T.bg,
+        borderRadius: BorderRadius.circular(T.radius),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(T.radius),
+          onTap: selected ? null : onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+                horizontal: T.spaceMd, vertical: T.spaceSm),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                if (selected) ...<Widget>[
+                  const Icon(Icons.check, size: 18, color: T.onPrimary),
+                  const SizedBox(width: T.spaceSm / 2),
+                ],
+                Text(
+                  contact.displayName,
+                  style: TextStyle(
+                    fontSize: T.textBase,
+                    color: selected ? T.onPrimary : T.text,
+                    fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
 }
 
 /// Câu hiện lên khi một cuộc gọi vừa kết thúc. Mọi nhánh kết thúc đều về đây,
