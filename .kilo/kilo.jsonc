@@ -95,9 +95,9 @@
     // gõ, vuốt, xoay, chụp màn hình, đọc accessibility tree, đọc log/crash. Máy này
     // đã có `xcrun` và một iPhone 17 đang boot, nên phần iOS chạy được ngay khi bật.
     //
-    // Vì sao vẫn để enabled:false: chưa có sản phẩm nào để mở. Chỉ bật khi
-    // `srcroot/mobile-experiences/` thật sự có app — bật sẵn thì mỗi phiên tốn thêm
-    // một process không dùng tới. Bật xong phải mở lại Kilo.
+    // ĐÃ BẬT. Vòng này nhắm app mobile nên server phải sẵn; đổi mức bật/tắt thì
+    // phải mở lại Kilo. Lưu ý `srcroot/mobile-experiences/` hiện mới là thư mục
+    // placeholder — server chạy được nhưng chưa có app nào để mở cho tới pha I.
     //
     // KHÁC TRÌNH DUYỆT Ở MỘT ĐIỂM CỐT TỬ: chỉ MỘT server cho cả 6 vai, vì thiết bị là
     // tài nguyên vật lý dùng chung — không có `--isolated` cho simulator. Hai vai cùng
@@ -105,35 +105,25 @@
     // trong một đợt chạy TUẦN TỰ (`viper-dogfood` Bước 3, ràng buộc thứ tư;
     // `viper-mobile §1`). Vẫn hai đợt, vẫn seed giữa đợt — chỉ mất tính song song.
     //
-    // Android: máy này CHƯA có `adb` và `emulator` (cần Android SDK platform-tools).
-    // Chỉ chạy được iOS cho tới khi cài.
+    // Cả hai nền chạy được: `xcrun` + iPhone 17 simulator, và `adb`/`emulator` ở
+    // ~/Library/Android/sdk/. Android cần một AVD đã tạo mới boot được.
     "mobile": {
       "type": "local",
       "command": ["npm", "exec", "-y", "--", "@mobilenext/mobile-mcp@latest"],
-      "enabled": false,
+      "enabled": true,
       "timeout": 120000
     },
     // Lớp widget cho app Flutter debug (tìm/bấm/gõ theo widget key, không theo toạ độ).
-    // Máy này CHƯA có `dart`/`flutter`. Trước khi bật:
-    //     dart pub global activate marionette_mcp
-    // và app phải phụ thuộc `marionette_flutter` + khởi tạo binding chỉ ở debug.
-    // Bật mà chưa cài thì Kilo báo lỗi khởi động mỗi phiên.
+    // ĐÃ BẬT — `marionette_mcp` có sẵn ở ~/.pub-cache/bin, `flutter`/`dart` qua fvm.
+    //
+    // CÒN MỘT NỬA Ở PHÍA APP: app phải phụ thuộc `marionette_flutter` và khởi tạo
+    // binding CHỈ ở debug. Chưa gắn thì server vẫn chạy, chỉ là không tìm thấy app —
+    // triệu chứng là tool marionette trả rỗng, không phải Kilo báo lỗi. Gắn ở pha I,
+    // cùng lúc dựng `srcroot/mobile-experiences/`.
     "marionette": {
       "type": "local",
       "command": ["marionette_mcp"],
-      "enabled": false,
-      "timeout": 120000
-    },
-
-    // ── Dịch vụ ngoài ─────────────────────────────────────────────────────────
-    // Gộp về đây từ .kilo/kilo.json (Kilo tự sinh) — hai file config cùng khai
-    // "mcp" là chồng chéo, không biết bên nào thắng. Một file, một nguồn sự thật.
-    // Chưa chốt stack (pha V) nên chưa rõ có dùng Firebase không; giữ lại, tắt sẵn,
-    // bật khi TECHSTACK.md chốt và ghi 1 dòng lý do ở DECISIONS.md.
-    "firebase": {
-      "type": "local",
-      "command": ["npx", "-y", "firebase-tools@14.15.2", "experimental:mcp"],
-      "enabled": false,
+      "enabled": true,
       "timeout": 120000
     }
   },

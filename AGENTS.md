@@ -138,8 +138,7 @@ chạy song song, mỗi bên đọc thư mục của mình:
 |---|---|---|
 | 4 guard | `.kilo/plugin/viper-guards.ts` | Tự nạp, không cần khai trong config |
 | 7 server Playwright | `.kilo/kilo.jsonc` mục `mcp` | `browser` cho phiên chính + **một server riêng cho mỗi vai dogfood** |
-| `mobile` · `marionette` | `.kilo/kilo.jsonc` | `enabled:false` tới khi có `srcroot/mobile-experiences/` thật |
-| `firebase` | `.kilo/kilo.jsonc` | `enabled:false` — bật khi `TECHSTACK.md` chốt dùng Firebase, kèm 1 dòng `DECISIONS.md` |
+| `mobile` · `marionette` | `.kilo/kilo.jsonc` | **`enabled:true`** — vòng này nhắm app mobile. `marionette` còn cần app phụ thuộc `marionette_flutter` (gắn ở pha I) |
 | 9 subagent `viper-*` | `.kilo/agent/*.md` | `question: deny` (không vai nào được hỏi Authority); 8 vai `edit: deny`, `viper-test-writer` chỉ ghi được thư mục test |
 | 10 workflow `$viper-*` | `.kilo/command/*.md` | |
 | Lệnh hướng ra ngoài | `.kilo/kilo.jsonc` mục `permission.bash` | `ask` cho deploy/push/publish — ngoại lệ "hỏi thật" của luật #2 |
