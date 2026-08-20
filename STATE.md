@@ -9,7 +9,7 @@ Vòng          : 1
 Pha vòng này  : V, I, P, E, R
 Ngày          : D1
 Stack         : Flutter 3.41.9 + livekit_client 2.5.3 + flutter_bloc (Android)
-URL local     : (chưa có)
+URL local     : APK debug — build/app/outputs/flutter-apk/app-debug.apk
 URL production: (chưa có)
 ```
 
