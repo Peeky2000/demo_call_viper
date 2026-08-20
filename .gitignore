@@ -63,3 +63,17 @@ test-results/
 *.swp
 .vscode/*
 !.vscode/extensions.json
+
+# Flutter / Dart — sinh ra lúc build, không commit
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.metadata
+*.iml
+build/
+android/.gradle/
+android/local.properties
+android/app/debug/
+android/app/profile/
+android/key.properties
+*.jks

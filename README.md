@@ -1,6 +1,9 @@
-# CORE-VIPER
+# KaiCall
 
-_Một dòng: sản phẩm này giải quyết nỗi đau gì, cho ai. Điền sau pha V — nguồn: `context/PRD.md §1`._
+Demo cuộc gọi video qua LiveKit trên Android: danh bạ 2 người, bấm gọi, máy kia
+hiện màn cuộc gọi đến với Nghe / Từ chối. Làm cho người viết code — một bản
+"chạy được" mà **có luồng như app thật và xử được ca biên**, để lần sau cần call
+thì bóc `lib/domain` + `lib/application` ra dùng lại, không phải dựng lại từ đầu.
 
 Dựng theo quy trình **VIPER**: solo, một tuần, production-ready.
 Luật và năm pha: [VIPER.md](VIPER.md) · Đang ở đâu: [STATE.md](STATE.md)
@@ -10,16 +13,22 @@ Luật và năm pha: [VIPER.md](VIPER.md) · Đang ở đâu: [STATE.md](STATE.m
 ## Chạy
 
 ```bash
-make dev      # chạy local (app + db)
-make check    # lint + typecheck + build
-make test     # smoke + luồng quan trọng
-make migrate  # DB migration có version
-make deploy   # đẩy lên PaaS
-make doctor   # kiểm env + kết nối
+cp deployment/.env.example deployment/local/.env   # rồi điền 4 giá trị
+make doctor   # kiểm 4 biến + liệt kê thiết bị
+make dev      # chạy lên máy/emulator đang cắm
+make check    # flutter analyze
+make test     # 22 test — máy trạng thái + ký token + tên phòng
+make deploy   # build APK debug để cài tay
+make migrate  # không có DB — in ra lý do rồi thoát
 ```
 
-Sáu lệnh này là hợp đồng chung. Phần thân điền ở pha I theo
-`.claude/skills/stack-<tên>/SKILL.md §4`; stack đang dùng ghi ở `context/TECHSTACK.md`.
+**Chạy đúng bản Flutter đã ghim (3.41.9).** `~/fvm/default` đang là 3.44.8 và
+chạy test bằng bản đó sẽ đỏ vì lệch shader (`ink_sparkle.frag`), không phải vì
+code sai. Makefile đã trỏ sẵn `~/fvm/versions/3.41.9`.
+
+**Thử gọi cần HAI đầu**: một máy Android thật + một emulator. Mở app ở cả hai,
+một bên bấm "đổi sang …" để hai máy đóng hai vai khác nhau, rồi bấm gọi.
+Emulator mic là giả — ca "nghe rõ không" phải kiểm bằng tai trên máy thật.
 
 ## Trạng thái
 
