@@ -10,7 +10,6 @@ last_reviewed: "2026-08-17"
 > **Ai dùng sản phẩm, và họ được cấp năng lực gì.** Điền ở pha V. Đây là nguồn sự thật cho
 > phân quyền khi code (pha I), và là chân dung để 6 vai `viper-user-*` đóng khi dogfood —
 > lăng kính hành vi (vội, phá, mới, khó tính…) là *cách dùng*, persona là *ai đang dùng*.
-> Xoá hết dấu `_CHƯA ĐIỀN_` khi điền xong — `python3 scripts/gate.py V` bắt dấu này.
 
 ---
 
@@ -36,17 +35,17 @@ last_reviewed: "2026-08-17"
      | Vào từ vòng | 1 |
 -->
 
-### Persona 1 — _CHƯA ĐIỀN_ (role: _CHƯA ĐIỀN_) ← persona chính
+### Persona 1 — Người thử demo (role: `peer`) ← persona chính
 
 | Mục | Nội dung |
 |---|---|
 | Mã (intake) | — (đường phỏng vấn để `—`) |
-| Chân dung + bối cảnh | _CHƯA ĐIỀN_ |
-| Thiết bị chính | _CHƯA ĐIỀN_ (điện thoại / máy tính — vai `viper-user-mobile` ưu tiên thiết bị này) |
-| Mức thành thạo | _CHƯA ĐIỀN_ |
-| Năng lực được cấp | _CHƯA ĐIỀN_ (được làm gì trong sản phẩm) |
-| KHÔNG được làm | _CHƯA ĐIỀN_ |
-| Luồng chính | _CHƯA ĐIỀN_ (vai dogfood sẽ đi đúng luồng này) |
+| Chân dung + bối cảnh | Dev hoặc tech lead, đang ngồi nghiệm thu. Cầm điện thoại Android một tay, thao tác bằng ngón cái, có khi cầm hai máy cùng lúc để tự gọi cho chính mình. Biết rõ app làm gì nên không đọc hướng dẫn — bấm thẳng, và cố tình bấm những chỗ dễ vỡ |
+| Thiết bị chính | Điện thoại Android thật (một máy) + một emulator Android làm đầu thứ hai |
+| Mức thành thạo | Cao về kỹ thuật, nhưng dùng app này lần đầu — luồng phải tự nói được nó đang ở đâu |
+| Năng lực được cấp | Chọn danh tính mình đang đóng · gọi một người trong danh bạ · nghe / từ chối cuộc gọi đến · tắt-bật mic, tắt-bật cam, đổi cam trước-sau · cúp máy |
+| KHÔNG được làm | Không có gì bị chặn theo vai — hai bên ngang quyền tuyệt đối. Không ai đuổi được ai, không ai tắt mic người khác, không ai khoá phòng |
+| Luồng chính | Mở app → chọn mình là ai → thấy danh bạ → bấm gọi một người → (máy kia hiện cuộc gọi đến) → bên kia bấm Nghe → nói chuyện, thử mic/cam → cúp máy → về danh bạ |
 | Vào từ vòng | 1 |
 
 <!-- Persona 2, 3… — copy đúng khung trên. Sản phẩm chỉ có một loại người dùng thì một
@@ -70,9 +69,24 @@ last_reviewed: "2026-08-17"
      | Đánh dấu hoàn thành | ✓ | ✓ (của mình) | ✗ |
 -->
 
-| Hành động | _CHƯA ĐIỀN_ (role 1) | chưa đăng nhập |
+**Sản phẩm KHÔNG có đăng nhập** — danh bạ mock 2 người cắm cứng, chọn danh tính bằng cách
+bấm, không mật khẩu, không phiên. Mọi người mở app đều thấy mọi thứ. Đã cân nhắc với Authority
+ở pha V và chốt giữ nguyên: đây là demo nghiệm thu tại chỗ trên máy của chính người thử, không
+phát hành, nên thêm auth chỉ tốn thời gian mà không chặn được rủi ro nào có thật.
+
+Vì chỉ có **một vai duy nhất** (`peer`) và hai bên ngang quyền, bảng này không có ô `✗` nào —
+tức **không có phép thử A↛B** để chạy ở `/viper-polish` nhóm 2. Đó là kết luận, không phải
+thiếu sót; ghi rõ ở đây để pha P không đi tìm một phép thử không tồn tại.
+
+| Hành động | `peer` | chưa đăng nhập |
 |---|---|---|
-| _CHƯA ĐIỀN_ | | |
+| Chọn danh tính đang đóng | ✓ | — (không có khái niệm đăng nhập) |
+| Gọi một người trong danh bạ | ✓ | — |
+| Nghe / từ chối cuộc gọi đến | ✓ | — |
+| Tắt-bật mic, tắt-bật cam, đổi cam | ✓ (của chính mình) | — |
+| Tắt mic / cam của người kia | ✗ | ✗ |
+| Đuổi người kia khỏi cuộc gọi | ✗ | ✗ |
+| Cúp máy | ✓ (kết thúc cho cả hai) | — |
 
 ## 3. Gán persona cho 6 vai dogfood
 
