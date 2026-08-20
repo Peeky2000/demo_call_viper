@@ -89,7 +89,10 @@ doctor:
 	@echo "  $(FLUTTER)"
 	@# KHÔNG dùng `| head -1`: head đóng ống sau dòng đầu, Flutter còn in tiếp
 	@# khung "có bản mới" rồi chết vì Broken pipe. awk đọc hết luồng mới in.
-	@$(FLUTTER) --version 2>/dev/null | awk 'NR==1{print "  " $$0}'
+	@# NF && !p: lấy dòng KHÔNG rỗng đầu tiên — flutter --version có dòng trắng
+	@# ở đầu nên NR==1 in ra trống. Không dùng `exit` sau khi in: exit đóng ống
+	@# sớm và lại dính đúng Broken pipe vừa vá.
+	@$(FLUTTER) --version 2>/dev/null | awk 'NF && !p {print "  " $$0; p=1}'
 	@$(FLUTTER) --version 2>/dev/null | awk '/3\.41\.9/{ok=1} END{if(!ok) print "  ⚠ không phải 3.41.9 — make test có thể đỏ vì lệch shader, không phải vì code sai"}'
 	@echo ""
 	@echo "── Bốn biến bắt buộc ($(ENV_FILE)) ─────────────────────"
