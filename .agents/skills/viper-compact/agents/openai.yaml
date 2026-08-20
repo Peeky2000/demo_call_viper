@@ -1,0 +1,5 @@
+interface:
+  display_name: "VIPER Compact"
+  short_description: "Gấp context cũ mà giữ nguyên mỏ neo"
+  default_prompt: "Use $viper-compact to clean accumulated VIPER context safely."
+

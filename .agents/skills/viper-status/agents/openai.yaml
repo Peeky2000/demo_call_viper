@@ -1,0 +1,5 @@
+interface:
+  display_name: "VIPER Status"
+  short_description: "Báo pha, gate, AC và blocker hiện tại"
+  default_prompt: "Use $viper-status to report the current VIPER state."
+

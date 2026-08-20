@@ -1,0 +1,53 @@
+{
+  "description": "VIPER lifecycle guards. Review and trust these project hooks with /hooks after first opening the workspace.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh -c 'root=$(git rev-parse --show-toplevel 2>/dev/null || pwd); exec python3 \"$root/scripts/reanchor.py\"'",
+            "commandWindows": "powershell -NoProfile -Command \"$root = git rev-parse --show-toplevel 2>$null; if (-not $root) { $root = (Get-Location).Path }; python (Join-Path $root 'scripts\\reanchor.py')\"",
+            "statusMessage": "Re-anchoring VIPER rules after compaction"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "request_user_input",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh -c 'root=$(git rev-parse --show-toplevel 2>/dev/null || pwd); exec python3 \"$root/scripts/guard_ask.py\"'",
+            "commandWindows": "powershell -NoProfile -Command \"$root = git rev-parse --show-toplevel 2>$null; if (-not $root) { $root = (Get-Location).Path }; python (Join-Path $root 'scripts\\guard_ask.py')\"",
+            "statusMessage": "Checking VIPER phase question policy"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh -c 'root=$(git rev-parse --show-toplevel 2>/dev/null || pwd); exec python3 \"$root/scripts/guard_bc.py\"'",
+            "commandWindows": "powershell -NoProfile -Command \"$root = git rev-parse --show-toplevel 2>$null; if (-not $root) { $root = (Get-Location).Path }; python (Join-Path $root 'scripts\\guard_bc.py')\"",
+            "statusMessage": "Checking backward compatibility before deploy"
+          }
+        ]
+      },
+      {
+        "matcher": "apply_patch|Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh -c 'root=$(git rev-parse --show-toplevel 2>/dev/null || pwd); exec python3 \"$root/scripts/guard_ds.py\"'",
+            "commandWindows": "powershell -NoProfile -Command \"$root = git rev-parse --show-toplevel 2>$null; if (-not $root) { $root = (Get-Location).Path }; python (Join-Path $root 'scripts\\guard_ds.py')\"",
+            "statusMessage": "Checking design-system contract"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,5 @@
+interface:
+  display_name: "VIPER Polish"
+  short_description: "Rà production-ready trước deploy"
+  default_prompt: "Use $viper-polish to prepare the product for deployment."
+

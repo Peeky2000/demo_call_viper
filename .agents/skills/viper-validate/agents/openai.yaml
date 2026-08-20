@@ -1,0 +1,5 @@
+interface:
+  display_name: "VIPER Validate"
+  short_description: "Chốt phạm vi và context pha V"
+  default_prompt: "Use $viper-validate to complete phase V for this project."
+

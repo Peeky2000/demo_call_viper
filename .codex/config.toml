@@ -1,0 +1,21 @@
+# VIPER project policy. Codex loads this layer only after the workspace is trusted.
+sandbox_mode = "workspace-write"
+approval_policy = "on-request"
+
+[agents]
+max_concurrent_threads_per_session = 3
+
+[mcp_servers.browser]
+command = "npm"
+args = ["exec", "-y", "--", "@playwright/mcp@latest", "--isolated", "--viewport-size", "1280,800"]
+default_tools_approval_mode = "approve"
+
+[mcp_servers.mobile]
+command = "npm"
+args = ["exec", "-y", "--", "@mobilenext/mobile-mcp@latest"]
+default_tools_approval_mode = "approve"
+
+[mcp_servers.marionette]
+command = "marionette_mcp"
+args = []
+default_tools_approval_mode = "approve"

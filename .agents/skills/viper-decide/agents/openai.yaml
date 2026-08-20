@@ -1,0 +1,5 @@
+interface:
+  display_name: "VIPER Decide"
+  short_description: "Ghi quyết định thay cho câu hỏi"
+  default_prompt: "Use $viper-decide to record this project decision."
+

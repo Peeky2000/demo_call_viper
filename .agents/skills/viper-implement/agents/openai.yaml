@@ -1,0 +1,5 @@
+interface:
+  display_name: "VIPER Implement"
+  short_description: "Dựng luồng lõi chạy được ở local"
+  default_prompt: "Use $viper-implement to implement the locked VIPER scope."
+

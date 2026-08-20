@@ -1,0 +1,5 @@
+interface:
+  display_name: "VIPER Repeat"
+  short_description: "Đóng vòng và mở vòng VIPER mới"
+  default_prompt: "Use $viper-repeat to close this round and open the next one."
+

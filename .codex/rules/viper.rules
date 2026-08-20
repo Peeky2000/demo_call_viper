@@ -1,0 +1,48 @@
+# External or irreversible operations always need an explicit approval.
+prefix_rule(
+    pattern = ["make", "deploy"],
+    decision = "prompt",
+    justification = "Deploy changes an external environment; confirm the target and rollback plan first.",
+)
+prefix_rule(
+    pattern = ["git", "push"],
+    decision = "prompt",
+    justification = "Pushing changes a remote repository.",
+)
+prefix_rule(
+    pattern = [["vercel", "railway", "fly", "flyctl", "render"]],
+    decision = "prompt",
+    justification = "PaaS commands can mutate external infrastructure or production state.",
+)
+prefix_rule(
+    pattern = ["gh", ["repo", "release"]],
+    decision = "prompt",
+    justification = "Creating repositories or releases changes public or shared state.",
+)
+prefix_rule(
+    pattern = ["npm", "publish"],
+    decision = "prompt",
+    justification = "Publishing a package is an external, difficult-to-reverse action.",
+)
+
+# Destructive commands are blocked. Use a scoped, recoverable alternative.
+prefix_rule(
+    pattern = ["sudo"],
+    decision = "forbidden",
+    justification = "Do not elevate privileges from a VIPER project; use a sandboxed project-local command.",
+)
+prefix_rule(
+    pattern = ["rm", "-rf", ["/", "~"]],
+    decision = "forbidden",
+    justification = "Never recursively delete a system or home root; resolve and narrow the target first.",
+)
+prefix_rule(
+    pattern = ["git", "push", ["--force", "-f"]],
+    decision = "forbidden",
+    justification = "Do not rewrite remote history; use a normal push or coordinate a safer recovery.",
+)
+prefix_rule(
+    pattern = ["git", "reset", "--hard"],
+    decision = "forbidden",
+    justification = "Do not discard local work; use a recoverable, scoped operation.",
+)

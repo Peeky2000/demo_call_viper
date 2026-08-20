@@ -1,0 +1,30 @@
+{
+  "$comment": "VIPER — công cụ dùng thử cho phiên chính khi meta tự tay dùng sản phẩm (/viper-dogfood Bước 2): 'browser' (Playwright MCP) cho web; 'mobile' (mobile-mcp) cho lớp thiết bị iOS/Android; 'marionette' (marionette_mcp) cho widget tree của app Flutter debug. Flutter dùng CẢ mobile + marionette: Marionette để nhìn/bấm/gõ theo widget, mobile-mcp để launch/kill/HOME/xoay/crash/notification center. Sáu vai viper-user-* KHÔNG dùng server ở đây: mỗi vai khai inline trong frontmatter. Browser có --isolated; simulator/emulator và app Flutter vẫn là MỘT tài nguyên dùng chung nên các vai mobile chạy TUẦN TỰ (xem .claude/skills/viper-mobile/SKILL.md). marionette_mcp cần được kích hoạt một lần bằng 'dart pub global activate marionette_mcp'; app Flutter phải phụ thuộc marionette_flutter và khởi tạo binding chỉ ở debug. Dùng 'npm exec' thay 'npx' cho hai server npm vì trên một số máy npx trong PATH là gói standalone đời cũ. Cách dùng: .claude/skills/viper-browse/SKILL.md và .claude/skills/viper-mobile/SKILL.md",
+  "mcpServers": {
+    "browser": {
+      "command": "npm",
+      "args": [
+        "exec",
+        "-y",
+        "--",
+        "@playwright/mcp@latest",
+        "--isolated",
+        "--viewport-size",
+        "1280,800"
+      ]
+    },
+    "mobile": {
+      "command": "npm",
+      "args": [
+        "exec",
+        "-y",
+        "--",
+        "@mobilenext/mobile-mcp@latest"
+      ]
+    },
+    "marionette": {
+      "command": "marionette_mcp",
+      "args": []
+    }
+  }
+}

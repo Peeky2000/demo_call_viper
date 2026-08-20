@@ -1,0 +1,5 @@
+interface:
+  display_name: "VIPER Publish"
+  short_description: "Deploy, smoke test và thử rollback"
+  default_prompt: "Use $viper-publish to deploy and verify the product safely."
+

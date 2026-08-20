@@ -1,0 +1,5 @@
+interface:
+  display_name: "VIPER Evaluate"
+  short_description: "Đọc số liệu và tối ưu pha E"
+  default_prompt: "Use $viper-evaluate to evaluate live product evidence."
+

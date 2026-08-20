@@ -1,0 +1,195 @@
+{
+  "$schema": "https://app.kilo.ai/config.json",
+
+  // VIPER — cấu hình cho runtime Kilo, port từ .claude/settings.json + .mcp.json.
+  // Kilo KHÔNG đọc .claude/ hay .codex/, nên MCP server, 9 subagent viper-* và 10
+  // workflow phải khai lại ở đây (subagent → .kilo/agent/, workflow → .kilo/command/).
+  //
+  // Kilo không có hook PreToolUse/SessionStart, nhưng có plugin API: bốn guard
+  // (guard_ask, guard_bc, guard_ds, reanchor) vẫn chạy TỰ ĐỘNG qua
+  // .kilo/plugin/viper-guards.ts — `tool.execute.before` chặn bằng cách throw, và
+  // `experimental.session.compacting` nhồi luật vào chính prompt nén. Xem AGENTS.md §3b.
+  // Plugin tự nạp, không khai ở file này. Phần permission dưới đây là lớp "ask" cho
+  // lệnh hướng ra ngoài — ngoại lệ "hỏi thật" của luật #2, độc lập với bốn guard.
+
+  "mcp": {
+    // ── Trình duyệt cho dogfood ────────────────────────────────────────────────
+    // MỖI VAI MỘT SERVER RIÊNG. Đây là port đúng của thiết kế Claude Code, nơi mỗi
+    // agent khai `mcpServers` inline trong frontmatter nên tự có một process
+    // Playwright riêng. Kilo khai MCP ở cấp dự án, nên phải khai tường minh từng cái.
+    //
+    // VÌ SAO KHÔNG DÙNG CHUNG MỘT SERVER: `$viper-dogfood` gửi cả 3 vai của một đợt
+    // trong MỘT lượt, tức chúng chạy song song. Dùng chung một server Playwright là
+    // dùng chung một browser context — vai này `browser_navigate` thì tab của vai kia
+    // đổi trang theo, `browser_snapshot` trả về màn của người khác. Báo cáo khi đó vô
+    // giá trị mà không ai biết. Chia đợt chỉ tách server dev + DB, KHÔNG tách trình
+    // duyệt (`viper-dogfood` Bước 3).
+    //
+    // Cờ của từng vai giữ đúng bản Claude Code: `--isolated` (profile trắng, không
+    // dính cookie lượt trước) cho tất cả; `--ignore-https-errors` cho vai đụng
+    // self-signed cert; `web_small` mang sẵn viewport điện thoại.
+    //
+    // GIÁ PHẢI TRẢ: 7 process node lúc khởi động (~50MB mỗi cái khi rỗi). Chromium chỉ
+    // bật khi vai đó gọi tool duyệt đầu tiên, nên lúc chưa dogfood thì gần như không
+    // tốn gì. Máy yếu thì đặt `enabled:false` cho 6 server `web_*` và chỉ bật khi chạy
+    // dogfood — đổi xong phải mở lại Kilo.
+    //
+    // TÊN TOOL = {server}_{tool}: server `web_edge` + tool `browser_navigate` →
+    // `web_edge_browser_navigate`. Skill `viper-browse` viết tên trần (`browser_navigate`);
+    // mỗi file vai đã ghi rõ tiền tố của mình.
+
+    // Cho phiên chính — meta tự tay dùng sản phẩm ($viper-dogfood Bước 2).
+    "browser": {
+      "type": "local",
+      "command": ["npm", "exec", "-y", "--", "@playwright/mcp@latest", "--isolated", "--viewport-size", "1280,800"],
+      "enabled": true,
+      "timeout": 120000
+    },
+
+    // Đợt 1 — DB sạch: trạng thái rỗng/lỗi · người mới · khó tính về hình thức.
+    "web_edge": {
+      "type": "local",
+      "command": ["npm", "exec", "-y", "--", "@playwright/mcp@latest", "--isolated", "--ignore-https-errors", "--viewport-size", "1280,800"],
+      "enabled": true,
+      "timeout": 120000
+    },
+    "web_newbie": {
+      "type": "local",
+      "command": ["npm", "exec", "-y", "--", "@playwright/mcp@latest", "--isolated", "--ignore-https-errors", "--viewport-size", "1280,800"],
+      "enabled": true,
+      "timeout": 120000
+    },
+    // picky ĐO hình thức thật, nên không nới lỗi HTTPS — giữ nguyên như bản Claude Code.
+    "web_picky": {
+      "type": "local",
+      "command": ["npm", "exec", "-y", "--", "@playwright/mcp@latest", "--isolated", "--viewport-size", "1280,800"],
+      "enabled": true,
+      "timeout": 120000
+    },
+
+    // Đợt 2 — DB có dữ liệu: người vội · người phá · màn hình nhỏ.
+    "web_rushed": {
+      "type": "local",
+      "command": ["npm", "exec", "-y", "--", "@playwright/mcp@latest", "--isolated", "--ignore-https-errors", "--viewport-size", "1280,800"],
+      "enabled": true,
+      "timeout": 120000
+    },
+    "web_breaker": {
+      "type": "local",
+      "command": ["npm", "exec", "-y", "--", "@playwright/mcp@latest", "--isolated", "--ignore-https-errors", "--viewport-size", "1280,800"],
+      "enabled": true,
+      "timeout": 120000
+    },
+    // Viewport điện thoại NGAY TỪ ĐẦU — vai này không phải tự gọi browser_resize nữa,
+    // đúng như bản Claude Code. Web experience trên màn nhỏ; app native thì dùng
+    // `mobile` + `marionette` bên dưới.
+    "web_small": {
+      "type": "local",
+      "command": ["npm", "exec", "-y", "--", "@playwright/mcp@latest", "--isolated", "--ignore-https-errors", "--viewport-size", "390,844"],
+      "enabled": true,
+      "timeout": 120000
+    },
+
+    // ── App mobile thật (simulator / emulator) ─────────────────────────────────
+    // CÓ, mobile-mcp điều khiển được simulator thật: boot thiết bị, cài app, chạm,
+    // gõ, vuốt, xoay, chụp màn hình, đọc accessibility tree, đọc log/crash. Máy này
+    // đã có `xcrun` và một iPhone 17 đang boot, nên phần iOS chạy được ngay khi bật.
+    //
+    // Vì sao vẫn để enabled:false: chưa có sản phẩm nào để mở. Chỉ bật khi
+    // `srcroot/mobile-experiences/` thật sự có app — bật sẵn thì mỗi phiên tốn thêm
+    // một process không dùng tới. Bật xong phải mở lại Kilo.
+    //
+    // KHÁC TRÌNH DUYỆT Ở MỘT ĐIỂM CỐT TỬ: chỉ MỘT server cho cả 6 vai, vì thiết bị là
+    // tài nguyên vật lý dùng chung — không có `--isolated` cho simulator. Hai vai cùng
+    // chạm một màn hình là giẫm nhau theo nghĩa đen. Nên với experience mobile, các vai
+    // trong một đợt chạy TUẦN TỰ (`viper-dogfood` Bước 3, ràng buộc thứ tư;
+    // `viper-mobile §1`). Vẫn hai đợt, vẫn seed giữa đợt — chỉ mất tính song song.
+    //
+    // Android: máy này CHƯA có `adb` và `emulator` (cần Android SDK platform-tools).
+    // Chỉ chạy được iOS cho tới khi cài.
+    "mobile": {
+      "type": "local",
+      "command": ["npm", "exec", "-y", "--", "@mobilenext/mobile-mcp@latest"],
+      "enabled": false,
+      "timeout": 120000
+    },
+    // Lớp widget cho app Flutter debug (tìm/bấm/gõ theo widget key, không theo toạ độ).
+    // Máy này CHƯA có `dart`/`flutter`. Trước khi bật:
+    //     dart pub global activate marionette_mcp
+    // và app phải phụ thuộc `marionette_flutter` + khởi tạo binding chỉ ở debug.
+    // Bật mà chưa cài thì Kilo báo lỗi khởi động mỗi phiên.
+    "marionette": {
+      "type": "local",
+      "command": ["marionette_mcp"],
+      "enabled": false,
+      "timeout": 120000
+    }
+  },
+
+  // Luật #2 cho phép toàn quyền TRONG sandbox dự án, nhưng luật #2 cũng chừa
+  // đúng một ngoại lệ: việc không đảo ngược được / hướng ra ngoài thì phải hỏi thật.
+  // Vì vậy bash allow toàn bộ, rồi ask riêng nhóm lệnh deploy/push/publish.
+  // LƯU Ý thứ tự xét của Kilo: luật KHỚP CUỐI CÙNG thắng (ngược Claude Code),
+  // nên "*" phải đứng ĐẦU, luật cụ thể xếp sau.
+  "permission": {
+    "edit": "allow",
+    "read": {
+      "*": "allow",
+      // Gờ giảm tốc, không phải hàng rào — bash vẫn đọc được. Thứ bảo vệ secret
+      // thật sự là .gitignore + luật #6 (không secret trong code).
+      //
+      // PHẢI có `**/` dẫn đầu: pattern khớp trên CẢ đường dẫn, nên `.env` trần chỉ
+      // khớp đúng file ở gốc repo — trong khi `.env` của dự án này nằm ở
+      // `deployment/local/.env` (AGENTS.md §6). Thiếu `**/` là tưởng đã thắt mà thực
+      // ra lỏng hơn default của Kilo (default dùng `*.env` + `*.env.*`).
+      "**/.env": "deny",
+      "**/.env.*": "deny",
+      // .env.example là file mẫu không có giá trị thật, và pha I cần đọc nó.
+      "**/.env.example": "allow",
+      "**/.ssh/**": "deny",
+      "**/.aws/**": "deny"
+    },
+    "bash": {
+      "*": "allow",
+      "sudo *": "deny",
+      "rm -rf /*": "deny",
+      "rm -rf ~*": "deny",
+      "git push --force*": "deny",
+      "git reset --hard origin*": "deny",
+      // Nhóm hướng ra ngoài — ngoại lệ "hỏi thật" của luật #2.
+      "make deploy*": "ask",
+      "git push*": "ask",
+      "vercel*": "ask",
+      "railway*": "ask",
+      "fly *": "ask",
+      "flyctl*": "ask",
+      "render*": "ask",
+      "gh repo create*": "ask",
+      "gh release*": "ask",
+      "npm publish*": "ask"
+    },
+    "webfetch": "allow",
+    "task": "allow",
+    "skill": "allow",
+    // MCP tool: khoá là {server}_{tool}. Thiếu các dòng này thì dogfood bị hỏi duyệt
+    // hàng trăm lần, và subagent chạy headless bị TỪ CHỐI IM LẶNG (không ai bấm hộ nó).
+    "browser_*": "allow",
+    "web_edge_*": "allow",
+    "web_newbie_*": "allow",
+    "web_picky_*": "allow",
+    "web_rushed_*": "allow",
+    "web_breaker_*": "allow",
+    "web_small_*": "allow",
+    "mobile_*": "allow",
+    "marionette_*": "allow"
+  },
+
+  // Sáu vai dogfood phải chạy được subagent; mặc định Kilo chặn subagent lồng nhau
+  // ở độ sâu 1, đủ cho $viper-dogfood (phiên chính → 6 vai).
+  "subagent_depth": 1,
+
+  // Skill dùng chung của template nằm ở .agents/skills/ (không phải .kilo/skill/).
+  "skills": {
+    "paths": ["./.agents/skills"]
+  }
+}

@@ -1,0 +1,5 @@
+interface:
+  display_name: "VIPER Dogfood"
+  short_description: "Dùng thử thật với sáu vai người dùng"
+  default_prompt: "Use $viper-dogfood to test the product through real user flows."
+
