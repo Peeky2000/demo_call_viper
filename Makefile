@@ -43,9 +43,11 @@ define NOT_IMPLEMENTED
 	@exit 1
 endef
 
-# Flutter ghim ở .fvmrc — KHÔNG dùng ~/fvm/default. Chạy sai bản thì test đỏ
-# vì lệch shader (ink_sparkle.frag "Expected 2, got 1"), không phải vì code sai.
-FLUTTER ?= $(HOME)/fvm/versions/3.41.9/bin/flutter
+# Flutter — ưu tiên bản ghim ở .fvmrc (3.41.9), không có thì lùi về PATH.
+# Vì sao ghim: bản khác có thể làm `make test` đỏ ở lỗi shader
+# (ink_sparkle.frag "Expected 2, got 1") — lệch SDK, không phải code sai.
+# Ép bản khác: make dev FLUTTER=/đường/dẫn/tới/flutter
+FLUTTER ?= $(shell if [ -x "$(HOME)/fvm/versions/3.41.9/bin/flutter" ]; then echo "$(HOME)/fvm/versions/3.41.9/bin/flutter"; else command -v flutter || echo flutter; fi)
 
 # Giá trị thật nằm ở deployment/local/.env — .gitignore đã chặn. Ở Flutter biến
 # đi vào app qua --dart-define chứ không đọc file lúc chạy (TECHSTACK.md §6).
@@ -84,7 +86,11 @@ deploy:
 
 doctor:
 	@echo "── Flutter ─────────────────────────────────────────────"
-	@$(FLUTTER) --version | head -1
+	@echo "  $(FLUTTER)"
+	@# KHÔNG dùng `| head -1`: head đóng ống sau dòng đầu, Flutter còn in tiếp
+	@# khung "có bản mới" rồi chết vì Broken pipe. awk đọc hết luồng mới in.
+	@$(FLUTTER) --version 2>/dev/null | awk 'NR==1{print "  " $$0}'
+	@$(FLUTTER) --version 2>/dev/null | awk '/3\.41\.9/{ok=1} END{if(!ok) print "  ⚠ không phải 3.41.9 — make test có thể đỏ vì lệch shader, không phải vì code sai"}'
 	@echo ""
 	@echo "── Bốn biến bắt buộc ($(ENV_FILE)) ─────────────────────"
 	@if [ ! -f $(ENV_FILE) ]; then \
@@ -95,12 +101,25 @@ doctor:
 		done; \
 	fi
 	@echo ""
-	@echo "── Thiết bị ────────────────────────────────────────────"
-	@$(FLUTTER) devices 2>/dev/null | tail -n +2 || echo "  (không có thiết bị nào)"
+	@echo "── Thiết bị Android ────────────────────────────────────"
+	@n=`$(FLUTTER) devices --machine 2>/dev/null | grep -c '"android' || true`; \
+	if [ "$$n" -gt 0 ]; then \
+		echo "  ✓ có $$n thiết bị Android:"; \
+		$(FLUTTER) devices 2>/dev/null | grep -i "android" | sed 's/^/    /'; \
+	else \
+		echo "  ✗ CHƯA có thiết bị Android — 'make dev' sẽ không chạy được"; \
+		echo ""; \
+		echo "  Emulator đã tạo sẵn trên máy này:"; \
+		$(FLUTTER) emulators 2>/dev/null | grep -i "android" | grep "•" | sed 's/^/    /' || echo "    (chưa tạo cái nào)"; \
+		echo ""; \
+		echo "  Bật một cái:   flutter emulators --launch <id ở cột đầu>"; \
+		echo "  Chưa có cái nào → Android Studio > Device Manager > Create device,"; \
+		echo "  hoặc cắm máy Android thật rồi bật USB debugging."; \
+	fi
 	@echo ""
-	@echo "  Cần HAI đầu để thử gọi: 1 máy Android thật + 1 emulator."
+	@echo "  Thử gọi cần HAI đầu: 1 máy Android thật + 1 emulator."
 	@echo "  Emulator mic là giả — ca 'nghe rõ không' phải kiểm bằng tai trên máy thật."
-	@echo 
+	@echo ""
 
 # --- không đổi ---
 
