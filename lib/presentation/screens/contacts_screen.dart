@@ -14,11 +14,13 @@ class ContactsScreen extends StatelessWidget {
     required this.state,
     required this.onCall,
     required this.onSwitchSelf,
+    required this.onRetry,
   });
 
   final CallUiState state;
   final void Function(Contact peer) onCall;
   final void Function(Contact self) onSwitchSelf;
+  final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
@@ -74,12 +76,42 @@ class ContactsScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: T.spaceMd),
-            StatusBanner(
-              text: state.lobbyConnected
-                  ? 'Đã kết nối'
-                  : 'Chưa kết nối được máy chủ — chưa gọi được',
-              bad: !state.lobbyConnected,
-            ),
+            if (state.lobbyConnected)
+              const StatusBanner(text: 'Đã kết nối')
+            else
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: T.spaceLg),
+                padding: const EdgeInsets.all(T.spaceMd),
+                decoration: BoxDecoration(
+                  color: T.surface,
+                  border: Border.all(color: T.danger),
+                  borderRadius: BorderRadius.circular(T.radius),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    const Text('Chưa vào được máy chủ — chưa gọi được',
+                        style: TextStyle(fontSize: T.textBase, color: T.danger)),
+                    if (state.lobbyError != null) ...<Widget>[
+                      const SizedBox(height: T.spaceSm),
+                      // Lý do thô của SDK. Xấu, nhưng đây là màn của người thử
+                      // kỹ thuật (PERSONAS.md) — giấu lý do đi thì họ phải đoán,
+                      // và đoán là thứ tốn thời gian nhất khi đang gấp.
+                      Text(state.lobbyError!,
+                          style: const TextStyle(
+                              fontSize: T.textSm, color: T.textMuted)),
+                    ],
+                    const SizedBox(height: T.spaceSm),
+                    TextButton(
+                      key: const Key('retry-lobby'),
+                      onPressed: onRetry,
+                      style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                      child: const Text('Thử lại',
+                          style: TextStyle(fontSize: T.textBase, color: T.primary)),
+                    ),
+                  ],
+                ),
+              ),
             const Padding(
               padding: EdgeInsets.fromLTRB(T.spaceLg, T.spaceSm, T.spaceLg, T.spaceSm),
               child: Text('GỌI CHO',

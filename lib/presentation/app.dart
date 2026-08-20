@@ -110,6 +110,7 @@ class CallRouter extends StatelessWidget {
               state: state,
               onCall: (Contact peer) => bloc.add(CallRequested(peer)),
               onSwitchSelf: (Contact self) => bloc.add(SelfChosen(self)),
+              onRetry: () => bloc.add(SelfChosen(state.self)),
             ),
         };
       },

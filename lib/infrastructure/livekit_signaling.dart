@@ -57,7 +57,13 @@ class LiveKitSignaling implements SignalingPort {
       identity: selfId,
       displayName: displayName,
     );
-    await room.connect(config.serverUrl.trim(), token);
+    try {
+      await room.connect(config.serverUrl.trim(), token);
+    } catch (e) {
+      // Ném tiếp kèm địa chỉ đang thử — nuốt lỗi ở đây là để người dùng nhìn
+      // banner "chưa kết nối được" mà không bao giờ biết vì sao.
+      throw Exception('Không vào được phòng chờ ${config.serverUrl.trim()} — $e');
+    }
     _connected.add(true);
   }
 

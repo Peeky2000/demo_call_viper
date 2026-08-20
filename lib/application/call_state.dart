@@ -10,6 +10,7 @@ class CallUiState extends Equatable {
     this.peer,
     this.invite,
     this.lobbyConnected = false,
+    this.lobbyError,
     this.micOn = true,
     this.cameraOn = true,
     this.peerJoined = false,
@@ -24,6 +25,10 @@ class CallUiState extends Equatable {
   final Contact? peer;
   final CallInvite? invite;
   final bool lobbyConnected;
+
+  /// Vì sao không vào được phòng chờ. Hiện thẳng lên banner — người thử phải
+  /// đọc được lý do, không phải đoán.
+  final String? lobbyError;
   final bool micOn;
   final bool cameraOn;
   final bool peerJoined;
@@ -42,6 +47,7 @@ class CallUiState extends Equatable {
     Contact? peer,
     CallInvite? invite,
     bool? lobbyConnected,
+    String? lobbyError,
     bool? micOn,
     bool? cameraOn,
     bool? peerJoined,
@@ -50,6 +56,7 @@ class CallUiState extends Equatable {
     CallEndReason? endReason,
     bool? permissionDenied,
     bool clearPeer = false,
+    bool clearLobbyError = false,
     bool clearInvite = false,
     bool clearEndReason = false,
   }) {
@@ -59,6 +66,7 @@ class CallUiState extends Equatable {
       peer: clearPeer ? null : (peer ?? this.peer),
       invite: clearInvite ? null : (invite ?? this.invite),
       lobbyConnected: lobbyConnected ?? this.lobbyConnected,
+      lobbyError: clearLobbyError ? null : (lobbyError ?? this.lobbyError),
       micOn: micOn ?? this.micOn,
       cameraOn: cameraOn ?? this.cameraOn,
       peerJoined: peerJoined ?? this.peerJoined,
@@ -71,7 +79,7 @@ class CallUiState extends Equatable {
 
   @override
   List<Object?> get props => <Object?>[
-        self, status, peer, invite, lobbyConnected, micOn, cameraOn,
+        self, status, peer, invite, lobbyConnected, lobbyError, micOn, cameraOn,
         peerJoined, peerHasVideo, reconnecting, endReason, permissionDenied,
       ];
 }

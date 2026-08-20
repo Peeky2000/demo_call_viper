@@ -26,6 +26,9 @@ class LocalTokenSigner implements TokenProvider {
   /// để sau này ai thấy rớt ở phút 121 thì biết ngay vì sao.
   static const Duration tokenTtl = Duration(hours: 2);
 
+  /// Dung sai lệch đồng hồ giữa máy và server LiveKit.
+  static const Duration clockSkewLeeway = Duration(seconds: 60);
+
   @override
   Future<String> tokenFor({
     required String roomName,
@@ -43,7 +46,10 @@ class LocalTokenSigner implements TokenProvider {
     }
 
     final DateTime now = _now();
-    final int nbf = now.millisecondsSinceEpoch ~/ 1000;
+    // Lùi nbf 60 giây. Đồng hồ máy nhanh hơn server LiveKit dù chỉ vài giây là
+    // token thành "chưa có hiệu lực" và bị từ chối — mà thông báo trả về không
+    // nói gì về đồng hồ, nên đây là kiểu lỗi cực khó lần nếu không phòng trước.
+    final int nbf = now.subtract(clockSkewLeeway).millisecondsSinceEpoch ~/ 1000;
     final int exp = now.add(tokenTtl).millisecondsSinceEpoch ~/ 1000;
 
     final String header = _segment(<String, dynamic>{'alg': 'HS256', 'typ': 'JWT'});

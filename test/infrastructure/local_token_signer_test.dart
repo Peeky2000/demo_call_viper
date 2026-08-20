@@ -47,10 +47,22 @@ void main() {
     expect(video['canPublishData'], isTrue); // thiếu cái này thì phòng chờ câm
   });
 
-  test('TTL đúng 2 giờ — mốc đã chốt ở challenge pha V', () async {
+  test('TTL đúng 2 giờ tính từ BÂY GIỜ — mốc đã chốt ở challenge pha V', () async {
     final String jwt = await LocalTokenSigner(_config(), now: () => fixed)
         .tokenFor(roomName: 'r', identity: 'i', displayName: 'I');
     final Map<String, dynamic> p = _payload(jwt);
-    expect((p['exp'] as int) - (p['nbf'] as int), 2 * 60 * 60);
+    final int now = fixed.millisecondsSinceEpoch ~/ 1000;
+    // Đo từ `now`, KHÔNG đo `exp - nbf`: nbf đã lùi lại nên hiệu hai số đó là
+    // 2 giờ + dung sai, không phải TTL.
+    expect((p['exp'] as int) - now, 2 * 60 * 60);
+  });
+
+  test('nbf lùi 60 giây — đồng hồ máy nhanh hơn server thì token vẫn dùng được', () async {
+    // Không có dung sai này thì lệch đồng hồ vài giây là LiveKit từ chối token,
+    // mà thông báo trả về không hề nhắc tới đồng hồ — cực khó lần.
+    final String jwt = await LocalTokenSigner(_config(), now: () => fixed)
+        .tokenFor(roomName: 'r', identity: 'i', displayName: 'I');
+    final int now = fixed.millisecondsSinceEpoch ~/ 1000;
+    expect(now - (_payload(jwt)['nbf'] as int), 60);
   });
 }

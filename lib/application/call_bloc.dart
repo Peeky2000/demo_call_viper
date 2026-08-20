@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../domain/call_models.dart';
@@ -68,13 +69,20 @@ class CallBloc extends Bloc<CallEvent, CallUiState> {
     emit(CallUiState(self: e.self));
     try {
       await _signaling.connect(selfId: e.self.id, displayName: e.self.displayName);
-    } catch (_) {
-      emit(state.copyWith(lobbyConnected: false));
+    } catch (err, stack) {
+      // In ra console để đọc bằng `flutter run` / `adb logcat`, VÀ đưa lên màn
+      // hình. Chỉ log thôi thì người cầm máy không thấy; chỉ hiện thôi thì mất
+      // stack trace. Cần cả hai.
+      debugPrint('KaiCall — vào phòng chờ thất bại: $err\n$stack');
+      emit(state.copyWith(lobbyConnected: false, lobbyError: err.toString()));
     }
   }
 
   void _onLobbyChanged(LobbyConnectionChanged e, Emitter<CallUiState> emit) {
-    emit(state.copyWith(lobbyConnected: e.connected));
+    emit(state.copyWith(
+      lobbyConnected: e.connected,
+      clearLobbyError: e.connected,
+    ));
   }
 
   Future<void> _onCallRequested(CallRequested e, Emitter<CallUiState> emit) async {
