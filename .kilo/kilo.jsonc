@@ -123,6 +123,18 @@
       "command": ["marionette_mcp"],
       "enabled": false,
       "timeout": 120000
+    },
+
+    // ── Dịch vụ ngoài ─────────────────────────────────────────────────────────
+    // Gộp về đây từ .kilo/kilo.json (Kilo tự sinh) — hai file config cùng khai
+    // "mcp" là chồng chéo, không biết bên nào thắng. Một file, một nguồn sự thật.
+    // Chưa chốt stack (pha V) nên chưa rõ có dùng Firebase không; giữ lại, tắt sẵn,
+    // bật khi TECHSTACK.md chốt và ghi 1 dòng lý do ở DECISIONS.md.
+    "firebase": {
+      "type": "local",
+      "command": ["npx", "-y", "firebase-tools@14.15.2", "experimental:mcp"],
+      "enabled": false,
+      "timeout": 120000
     }
   },
 

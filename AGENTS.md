@@ -129,11 +129,17 @@ trong plugin là chỗ dịch.
 Toàn bộ phần khai cho Kilo nằm ở `.kilo/` — không sửa `.claude/` và `.codex/`, ba runtime
 chạy song song, mỗi bên đọc thư mục của mình:
 
+> **Một file config duy nhất: `.kilo/kilo.jsonc`.** Kilo tự sinh `.kilo/kilo.json` khi
+> thêm MCP qua giao diện — hai file cùng khai `mcp` là chồng chéo, không biết bên nào
+> thắng, và triệu chứng chỉ lộ ra lúc `$viper-dogfood` chạy rồi thấy 3 vai giẫm chân
+> nhau trong một browser. Thấy `kilo.json` xuất hiện lại thì gộp về `.jsonc` rồi xoá.
+
 | Thứ | Nơi khai | Ghi chú |
 |---|---|---|
 | 4 guard | `.kilo/plugin/viper-guards.ts` | Tự nạp, không cần khai trong config |
 | 7 server Playwright | `.kilo/kilo.jsonc` mục `mcp` | `browser` cho phiên chính + **một server riêng cho mỗi vai dogfood** |
 | `mobile` · `marionette` | `.kilo/kilo.jsonc` | `enabled:false` tới khi có `srcroot/mobile-experiences/` thật |
+| `firebase` | `.kilo/kilo.jsonc` | `enabled:false` — bật khi `TECHSTACK.md` chốt dùng Firebase, kèm 1 dòng `DECISIONS.md` |
 | 9 subagent `viper-*` | `.kilo/agent/*.md` | `question: deny` (không vai nào được hỏi Authority); 8 vai `edit: deny`, `viper-test-writer` chỉ ghi được thư mục test |
 | 10 workflow `$viper-*` | `.kilo/command/*.md` | |
 | Lệnh hướng ra ngoài | `.kilo/kilo.jsonc` mục `permission.bash` | `ask` cho deploy/push/publish — ngoại lệ "hỏi thật" của luật #2 |
