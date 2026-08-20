@@ -141,6 +141,13 @@ theo bản đồ §1 — không phát triển tiếp file này, không copy nguy
 
 | Lượt | Ngày | Phản hồi của Authority | Đã sửa |
 |---|---|---|---|
-| 1 | _CHƯA ĐIỀN_ | | |
+| 1 | 2026-08-20 | "k khoái lắm t muốn nó như kiểu zalo app điện thoại bình thường cơ" — bản 1 nhìn như bản vẽ kỹ thuật, không ra dáng app | Dựng lại: khung điện thoại có viền + tai thỏ + thanh trạng thái · nút tròn có icon SVG thay chữ · S2/S3 avatar 128px giữa màn, hai nút lớn dưới đáy (đỏ trái / xanh phải) · S4 video tràn vùng + ô "Bạn" picture-in-picture góc phải + hàng 4 nút điều khiển · Mic/Cam bấm được, đổi màu và đổi nhãn |
+| 2 | 2026-08-20 | Vẽ lại bằng ASCII trong terminal để hình dung nhanh, không phải mở trình duyệt | Không sửa prototype — chỉ là cách trình bày |
 
-Chốt bởi Authority: _CHƯA ĐIỀN_
+Chốt bởi Authority: 2026-08-20
+
+> Nguyên văn: **"tạm thơi trông có vẻ ok đấy"** — chốt **tạm**, không phải chốt hài lòng.
+> Ghi đúng như vậy để pha I hiểu đúng mức độ: hình thức đã đủ để đi tiếp, chưa phải đã đẹp.
+> Authority cũng đã dặn trước cách làm việc cho phần còn lại: *"cứ chạy đi sai đâu thiếu đâu
+> chưa ưng ở đâu sửa thêm ở đó"* — tức chỉnh hình thức tiếp là chuyện của lúc dùng thử trên
+> máy thật, không phải lý do mở lại pha V.
