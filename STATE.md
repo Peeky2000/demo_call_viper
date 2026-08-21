@@ -137,6 +137,11 @@ một dòng `DECISIONS.md` theo luật #1. **Chưa ghi.**
 
 ### Máy móc — chỗ này quan trọng nhất với phiên mới
 
+**Authority KHÔNG cài được Claude trên máy mình** (không có tài khoản). Nên cách
+làm việc cố định là: phiên chat mở trên **Mac mini công ty**, mọi thao tác thực
+thi **qua SSH** sang máy Authority. Đừng đề nghị "mở Claude trên máy bạn" —
+không làm được, và đó chính là lý do có cả lớp SSH này.
+
 Repo sống ở **máy của Authority**, không phải máy chạy Claude:
 
 ```
