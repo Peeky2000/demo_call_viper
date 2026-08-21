@@ -171,7 +171,7 @@ trong ssh bị zsh nuốt mất dấu `?` và dấu nháy.
 
 **Đẩy GitHub**: máy Authority không có credential. Đường vòng: từ máy chạy Claude
 `git fetch longmac:demo_call_viper main` rồi
-`git push -c credential.helper='!gh auth git-credential' origin <sha>:main`.
+`git -c credential.helper='!gh auth git-credential' push origin <sha>:main`.
 
 ### Thiết bị
 
