@@ -13,14 +13,24 @@ Luật và năm pha: [VIPER.md](VIPER.md) · Đang ở đâu: [STATE.md](STATE.m
 ## Chạy
 
 ```bash
-cp deployment/.env.example deployment/local/.env   # rồi điền 4 giá trị
+mkdir -p deployment/local
+cp deployment/.env.example deployment/local/.env   # rồi điền 4 giá trị THẬT
 make doctor   # kiểm 4 biến + liệt kê thiết bị
 make dev      # chạy lên máy/emulator đang cắm
 make check    # flutter analyze
-make test     # 22 test — máy trạng thái + ký token + tên phòng
+make test     # 29 test — máy trạng thái + ký token + tên phòng
 make deploy   # build APK debug để cài tay
 make migrate  # không có DB — in ra lý do rồi thoát
 ```
+
+**`deployment/local/.env` KHÔNG có trong repo** — `.gitignore` chặn `.env` ở mọi
+cấp, cố ý (APK mang theo API secret thì ai giải nén cũng ký được token vào mọi
+phòng — `DECISIONS.md` 2026-08-20). Pull repo về là thiếu, và thiếu thì `make dev`
+/`make deploy` từ chối chạy, app dựng lên hiện màn chặn S0 "Chưa chạy được".
+Không phải hỏng. Xin 4 giá trị từ Authority rồi điền.
+
+`make check` và `make test` **không cần** `.env`, cũng không cần thiết bị — chạy
+được ngay sau khi clone.
 
 **Chạy đúng bản Flutter đã ghim (3.41.9).** `~/fvm/default` đang là 3.44.8 và
 chạy test bằng bản đó sẽ đỏ vì lệch shader (`ink_sparkle.frag`), không phải vì
@@ -53,6 +63,14 @@ python3 scripts/gate.py     # gate của pha hiện tại còn thiếu gì
 | [context/shared/DEPLOY.md](context/shared/DEPLOY.md) | Nơi chạy · env · migration · **rollback** |
 
 ## Bắt đầu
+
+**Dự án này đã qua pha V và đang ở giữa pha I.** Đọc `STATE.md` mục "Bàn giao cho
+phiên sau" trước khi làm gì — trong đó có đang nợ gì, và mục "Chạy trên MỘT MÁY
+KHÁC" dành cho người vừa pull repo về.
+
+Đừng chạy `/viper-validate` nữa: nó mở pha V, mà scope đã khoá từ 2026-08-20.
+
+Dựng dự án MỚI theo quy trình này thì mới cần:
 
 ```bash
 claude
