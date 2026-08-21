@@ -30,6 +30,7 @@ class CallBloc extends Bloc<CallEvent, CallUiState> {
     on<LobbyConnectionChanged>(_onLobbyChanged);
     on<CallRequested>(_onCallRequested);
     on<InviteArrived>(_onInviteArrived);
+    on<AcceptanceArrived>(_onAcceptanceArrived);
     on<RejectionArrived>(_onRejectionArrived);
     on<CancellationArrived>(_onCancellationArrived);
     on<CallAccepted>(_onAccepted);
@@ -47,6 +48,7 @@ class CallBloc extends Bloc<CallEvent, CallUiState> {
 
     _subs.addAll(<StreamSubscription<dynamic>>[
       _signaling.invites.listen((CallInvite i) => add(InviteArrived(i))),
+      _signaling.acceptances.listen((CallInvite i) => add(AcceptanceArrived(i))),
       _signaling.rejections.listen((CallInvite i) => add(RejectionArrived(i))),
       _signaling.cancellations.listen((CallInvite i) => add(CancellationArrived(i))),
       _signaling.lobby.listen((LobbyStatus st) => add(LobbyConnectionChanged(st))),
@@ -66,7 +68,7 @@ class CallBloc extends Bloc<CallEvent, CallUiState> {
       );
 
   Future<void> _onSelfChosen(SelfChosen e, Emitter<CallUiState> emit) async {
-    emit(CallUiState(self: e.self));
+    emit(CallUiState(self: e.self, identityChosen: true));
     try {
       await _signaling.connect(selfId: e.self.id, displayName: e.self.displayName);
     } catch (err, stack) {
@@ -133,6 +135,19 @@ class CallBloc extends Bloc<CallEvent, CallUiState> {
     ));
   }
 
+  /// Bên kia bấm Nghe → mình cũng vào phòng. Trước bản vá 2026-08-21 không có
+  /// hàm này, nên máy gọi đi ngồi ở `outgoing` tới lúc timeout rồi báo "Không
+  /// trả lời" — dù bên kia đã ở trong phòng chờ mình. Luồng lõi chưa bao giờ
+  /// nối được, mà 24 test vẫn xanh vì test AC-2 chỉ đi từ phía người NHẬN.
+  Future<void> _onAcceptanceArrived(AcceptanceArrived e, Emitter<CallUiState> emit) async {
+    if (state.status != CallStatus.outgoing) return;
+    if (e.invite.fromId != state.self.id) return; // lời đồng ý cho cuộc khác
+    final Contact? peer = state.peer;
+    if (peer == null) return;
+    _cancelRingTimer();
+    await _enterCall(e.invite, peer, emit);
+  }
+
   void _onRejectionArrived(RejectionArrived e, Emitter<CallUiState> emit) {
     if (state.status != CallStatus.outgoing) return;
     _cancelRingTimer();
@@ -154,6 +169,10 @@ class CallBloc extends Bloc<CallEvent, CallUiState> {
       _end(emit, CallEndReason.failed);
       return;
     }
+    // BÁO CHO BÊN GỌI TRƯỚC khi tự vào phòng. Vào trước rồi mới báo thì bên kia
+    // mất thêm ngần ấy giây ngồi nhìn "Đang gọi…", và nếu join hỏng thì họ chờ
+    // hết 30 giây vô ích.
+    await _signaling.accept(invite);
     await _enterCall(invite, peer, emit);
   }
 

@@ -55,8 +55,13 @@ class ContactsScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  const Text('Máy này là ai?',
-                      style: TextStyle(fontSize: T.textSm, color: T.textMuted)),
+                  Text(
+                      state.identityChosen
+                          ? 'Máy này là ai?'
+                          : 'Chọn máy này là ai để bắt đầu',
+                      style: TextStyle(
+                          fontSize: T.textSm,
+                          color: state.identityChosen ? T.textMuted : T.text)),
                   const SizedBox(height: T.spaceSm),
                   Row(
                     children: <Widget>[
@@ -66,7 +71,7 @@ class ContactsScreen extends StatelessWidget {
                           child: _IdentityChip(
                             key: Key('be-${c.id}'),
                             contact: c,
-                            selected: c.id == state.self.id,
+                            selected: state.identityChosen && c.id == state.self.id,
                             onTap: () => onSwitchSelf(c),
                           ),
                         ),
@@ -76,7 +81,21 @@ class ContactsScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: T.spaceMd),
-            if (state.lobbyConnected)
+            if (!state.identityChosen)
+              const Expanded(
+                child: Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(T.spaceLg),
+                    child: Text(
+                      'Hai máy phải chọn hai người khác nhau.\n'
+                      'Chọn xong app mới nối vào máy chủ.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: T.textSm, color: T.textMuted),
+                    ),
+                  ),
+                ),
+              )
+            else if (state.lobbyConnected)
               const StatusBanner(text: 'Đã kết nối')
             else
               Container(
@@ -125,13 +144,15 @@ class ContactsScreen extends StatelessWidget {
                   ],
                 ),
               ),
-            const Padding(
+            if (state.identityChosen)
+              const Padding(
               padding: EdgeInsets.fromLTRB(T.spaceLg, T.spaceSm, T.spaceLg, T.spaceSm),
               child: Text('GỌI CHO',
                   style: TextStyle(
                       fontSize: T.textSm, color: T.textMuted, letterSpacing: 1.2)),
             ),
-            Expanded(
+            if (state.identityChosen)
+              Expanded(
               child: ListView.separated(
                 itemCount: others.length,
                 separatorBuilder: (BuildContext _, int _) => const Divider(height: 1, color: T.surface),
@@ -178,7 +199,8 @@ class ContactsScreen extends StatelessWidget {
             ),
             // Danh bạ chỉ có 1 dòng (2 người, mình là một) nên phần dưới trống
             // trơn. Chỗ trống đó phải nói được việc tiếp theo, không để đen.
-            Padding(
+            if (state.identityChosen)
+              Padding(
               padding: const EdgeInsets.all(T.spaceLg),
               child: Column(
                 children: <Widget>[

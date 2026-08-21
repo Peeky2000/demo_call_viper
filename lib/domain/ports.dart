@@ -31,10 +31,16 @@ abstract interface class SignalingPort {
   Future<void> connect({required String selfId, required String displayName});
   Future<void> disconnect();
   Future<void> invite(CallInvite invite);
+
+  /// Bên nhận bấm Nghe. THIẾU tín hiệu này thì bên gọi không bao giờ biết mình
+  /// được nghe: nó ngồi ở `outgoing` đủ 30 giây rồi kết luận "Không trả lời"
+  /// trong khi bên kia đã ở trong phòng. Dogfood 2026-08-21 bắt được.
+  Future<void> accept(CallInvite invite);
   Future<void> reject(CallInvite invite);
   Future<void> cancel(CallInvite invite);
 
   Stream<CallInvite> get invites;
+  Stream<CallInvite> get acceptances;
   Stream<CallInvite> get rejections;
   Stream<CallInvite> get cancellations;
   Stream<LobbyStatus> get lobby;

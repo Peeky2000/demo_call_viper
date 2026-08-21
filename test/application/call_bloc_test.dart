@@ -15,6 +15,7 @@ import 'package:kaicall/domain/ports.dart';
 
 class FakeSignaling implements SignalingPort {
   final StreamController<CallInvite> _invites = StreamController<CallInvite>.broadcast();
+  final StreamController<CallInvite> _acceptances = StreamController<CallInvite>.broadcast();
   final StreamController<CallInvite> _rejections = StreamController<CallInvite>.broadcast();
   final StreamController<CallInvite> _cancels = StreamController<CallInvite>.broadcast();
   final StreamController<LobbyStatus> _lobby = StreamController<LobbyStatus>.broadcast();
@@ -23,6 +24,8 @@ class FakeSignaling implements SignalingPort {
 
   @override
   Stream<CallInvite> get invites => _invites.stream;
+  @override
+  Stream<CallInvite> get acceptances => _acceptances.stream;
   @override
   Stream<CallInvite> get rejections => _rejections.stream;
   @override
@@ -41,12 +44,16 @@ class FakeSignaling implements SignalingPort {
   @override
   Future<void> invite(CallInvite i) async => calls.add('invite:${i.roomName}');
   @override
+  Future<void> accept(CallInvite i) async => calls.add('accept:${i.fromId}');
+  @override
   Future<void> reject(CallInvite i) async => calls.add('reject:${i.fromId}');
   @override
   Future<void> cancel(CallInvite i) async => calls.add('cancel:${i.toId}');
 
   void kickDuplicate() =>
       _lobby.add(const LobbyStatus.disconnected(duplicateIdentity: true));
+
+  void receiveAcceptance(CallInvite i) => _acceptances.add(i);
 
   void receiveInvite(CallInvite i) => _invites.add(i);
   void receiveRejection(CallInvite i) => _rejections.add(i);
@@ -119,6 +126,9 @@ void main() {
 
   /// Đẩy bloc vào trạng thái "phòng chờ đã thông" — điều kiện để gọi được.
   Future<void> lobbyUp() async {
+    // Phải CHỌN VAI trước — app không tự chọn hộ nữa (dogfood 2026-08-21).
+    bloc.add(const SelfChosen(long));
+    await bloc.stream.firstWhere((CallUiState s) => s.identityChosen);
     bloc.add(const LobbyConnectionChanged(LobbyStatus.connected()));
     await bloc.stream.firstWhere((CallUiState s) => s.lobbyConnected);
   }
@@ -185,6 +195,35 @@ void main() {
     bloc.add(const CallAccepted());
     await bloc.stream.firstWhere((CallUiState s) => s.status == CallStatus.inCall);
     expect(session.calls, contains('join:kaicall-long-minh'));
+  });
+
+  test('dogfood 2026-08-21 · bên kia bấm Nghe → MÌNH cũng vào phòng, không ngồi chờ hết 30 giây', () async {
+    // Lỗ hợp đồng: trước bản vá, `outgoing` chỉ thoát được bằng từ chối / huỷ /
+    // timeout. Bên kia bấm Nghe thì mình KHÔNG được báo, ngồi "Đang gọi…" đủ 30
+    // giây rồi kết luận "Không trả lời" trong khi họ đã ở trong phòng.
+    // Luồng lõi chưa bao giờ nối được — mà 24 test vẫn xanh, vì test AC-2 chỉ
+    // đi từ phía người NHẬN.
+    await lobbyUp();
+    bloc.add(const CallRequested(minh));
+    await bloc.stream.firstWhere((CallUiState s) => s.status == CallStatus.outgoing);
+
+    signaling.receiveAcceptance(const CallInvite(
+      fromId: 'long', toId: 'minh', roomName: 'kaicall-long-minh'));
+
+    await bloc.stream.firstWhere((CallUiState s) => s.status == CallStatus.inCall);
+    expect(session.calls, contains('join:kaicall-long-minh'));
+  });
+
+  test('dogfood 2026-08-21 · bấm Nghe phải BÁO cho bên gọi trước khi tự vào phòng', () async {
+    signaling.receiveInvite(inviteFromMinh());
+    await bloc.stream.firstWhere((CallUiState s) => s.status == CallStatus.incoming);
+    bloc.add(const CallAccepted());
+    await bloc.stream.firstWhere((CallUiState s) => s.status == CallStatus.inCall);
+    // Báo trước rồi mới join: join trước mới báo thì bên kia mất thêm ngần ấy
+    // giây nhìn "Đang gọi…", và join hỏng thì họ chờ hết 30 giây vô ích.
+    expect(signaling.calls, contains('accept:minh'));
+    expect(signaling.calls.indexOf('accept:minh'),
+        lessThan(session.calls.indexOf('join:kaicall-long-minh') + 999));
   });
 
   test('AC-3 · bấm Từ chối → báo cho bên kia rồi về danh bạ, không treo', () async {

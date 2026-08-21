@@ -43,7 +43,10 @@ class KaiCallApp extends StatelessWidget {
                   signaling: signaling,
                   session: session,
                   permissions: permissions,
-                )..add(SelfChosen(kDemoContacts.first)),
+                ),
+                // KHÔNG bắn SelfChosen ở đây. Tự chọn hộ = hai máy mở lên cùng
+                // là một người, LiveKit đá một cái ra (dogfood 2026-08-21).
+                // Người dùng phải bấm, và cái bấm đó mới nối vào phòng chờ.
                 child: CallRouter(session: session, permissions: permissions),
               )
             // S0 — màn cụt, không dựng bloc: chưa có cấu hình thì không có gì

@@ -28,6 +28,13 @@ class InviteArrived extends CallEvent {
   final CallInvite invite;
 }
 
+/// Bên kia đã bấm Nghe — đường DUY NHẤT đưa máy gọi đi ra khỏi "Đang gọi…"
+/// một cách thành công. Thiếu nó thì cuộc gọi không bao giờ nối được.
+class AcceptanceArrived extends CallEvent {
+  const AcceptanceArrived(this.invite);
+  final CallInvite invite;
+}
+
 class RejectionArrived extends CallEvent {
   const RejectionArrived(this.invite);
   final CallInvite invite;

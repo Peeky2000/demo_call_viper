@@ -28,12 +28,15 @@ class LiveKitSignaling implements SignalingPort {
   lk.EventsListener<lk.RoomEvent>? _listener;
 
   final StreamController<CallInvite> _invites = StreamController<CallInvite>.broadcast();
+  final StreamController<CallInvite> _acceptances = StreamController<CallInvite>.broadcast();
   final StreamController<CallInvite> _rejections = StreamController<CallInvite>.broadcast();
   final StreamController<CallInvite> _cancellations = StreamController<CallInvite>.broadcast();
   final StreamController<LobbyStatus> _lobby = StreamController<LobbyStatus>.broadcast();
 
   @override
   Stream<CallInvite> get invites => _invites.stream;
+  @override
+  Stream<CallInvite> get acceptances => _acceptances.stream;
   @override
   Stream<CallInvite> get rejections => _rejections.stream;
   @override
@@ -90,6 +93,8 @@ class LiveKitSignaling implements SignalingPort {
     switch (msg['type']) {
       case 'invite':
         _invites.add(invite);
+      case 'accept':
+        _acceptances.add(invite);
       case 'reject':
         _rejections.add(invite);
       case 'cancel':
@@ -114,6 +119,8 @@ class LiveKitSignaling implements SignalingPort {
 
   @override
   Future<void> invite(CallInvite invite) => _send('invite', invite);
+  @override
+  Future<void> accept(CallInvite invite) => _send('accept', invite);
   @override
   Future<void> reject(CallInvite invite) => _send('reject', invite);
   @override

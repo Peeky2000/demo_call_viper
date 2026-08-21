@@ -9,6 +9,7 @@ class CallUiState extends Equatable {
     this.status = CallStatus.idle,
     this.peer,
     this.invite,
+    this.identityChosen = false,
     this.lobbyConnected = false,
     this.lobbyError,
     this.kickedByDuplicate = false,
@@ -25,6 +26,12 @@ class CallUiState extends Equatable {
   final CallStatus status;
   final Contact? peer;
   final CallInvite? invite;
+  /// Người dùng đã BẤM chọn máy này là ai chưa. Mặc định false: app KHÔNG tự
+  /// chọn hộ. Trước bản vá 2026-08-21 nó tự chọn người đầu danh bạ rồi vào
+  /// phòng chờ ngay — nên hai máy mở lên là cùng vai, LiveKit đá một cái ra,
+  /// tái lập 100%. Dogfood bắt được.
+  final bool identityChosen;
+
   final bool lobbyConnected;
 
   /// Vì sao không vào được phòng chờ. Hiện thẳng lên banner — người thử phải
@@ -45,13 +52,14 @@ class CallUiState extends Equatable {
 
   /// Chỉ gọi được khi phòng chờ đang thông — nút Gọi mờ đi ở trạng thái khác.
   /// Bấm vào hư không rồi ngồi đợi là đúng cái nỗi đau ở PRD.md §1.
-  bool get canCall => lobbyConnected && status == CallStatus.idle;
+  bool get canCall => identityChosen && lobbyConnected && status == CallStatus.idle;
 
   CallUiState copyWith({
     Contact? self,
     CallStatus? status,
     Contact? peer,
     CallInvite? invite,
+    bool? identityChosen,
     bool? lobbyConnected,
     String? lobbyError,
     bool? kickedByDuplicate,
@@ -72,6 +80,7 @@ class CallUiState extends Equatable {
       status: status ?? this.status,
       peer: clearPeer ? null : (peer ?? this.peer),
       invite: clearInvite ? null : (invite ?? this.invite),
+      identityChosen: identityChosen ?? this.identityChosen,
       lobbyConnected: lobbyConnected ?? this.lobbyConnected,
       lobbyError: clearLobbyError ? null : (lobbyError ?? this.lobbyError),
       kickedByDuplicate: kickedByDuplicate ?? this.kickedByDuplicate,
@@ -87,7 +96,8 @@ class CallUiState extends Equatable {
 
   @override
   List<Object?> get props => <Object?>[
-        self, status, peer, invite, lobbyConnected, lobbyError, kickedByDuplicate,
+        self, status, peer, invite, identityChosen, lobbyConnected, lobbyError,
+        kickedByDuplicate,
         micOn, cameraOn,
         peerJoined, peerHasVideo, reconnecting, endReason, permissionDenied,
       ];
