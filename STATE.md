@@ -106,7 +106,8 @@ Chặn cứng sau khi đã tự thử hết cách. Không hỏi giữa chừng �
 
 | Ngày | Blocker | Đã thử gì | Trạng thái |
 |---|---|---|---|
-| | | | |
+| 2026-08-21 | **Gọi hai đầu chưa nối được.** Emulator(Long) bấm Gọi → máy thật(Minh) hiện "Cuộc gọi đến Long" ĐÚNG → bấm Nghe → **cả hai về danh bạ**, không vào cuộc gọi | Đọc logcat cả hai: không crash GPU, không exception nào lọt lên tag `flutter`. Giả thuyết mạnh nhất: `setCameraEnabled(true)` ném lỗi trên emulator, mà bản cũ gộp chung try với `connect()` nên bị hiểu là "không vào được phòng" → máy đó rời phòng → máy kia thấy đối phương thoát → cũng về danh bạ | **Đã vá, CHƯA kiểm lại.** Tách try, lỗi mic/cam chỉ log chứ không đánh sập cuộc gọi. Việc tiếp theo: build lại, cài 2 máy, gọi lại, đọc log tag `flutter` xem debugPrint mới nói gì |
+| 2026-08-21 | `pm grant` quyền runtime **giết tiến trình app** | Cấp quyền bằng `adb shell pm grant` giữa lượt thử làm app khởi động lại, mất vai đã chọn và mất kết nối phòng chờ — làm nhiễu chẩn đoán một lượt | Cách đúng: cấp quyền **trước khi mở app**, hoặc bấm tay trên hộp thoại hệ thống |
 
 ---
 
@@ -120,3 +121,76 @@ Thứ tìm được khi dùng thử nhưng chưa sửa (nhỏ thì sửa ngay, n
 | 2026-08-21 | Dogfood Kilo — **lỗ hợp đồng, nặng nhất tới giờ** | `SignalingPort` thiếu hẳn tín hiệu **accept**. B bấm Nghe thì B vào phòng, còn A KHÔNG được báo — ngồi ở "Đang gọi…" đủ 30 giây rồi kết luận "Không trả lời" trong khi B đã ở trong phòng chờ A. **Luồng lõi chưa bao giờ nối được**, mà 24 test vẫn xanh vì test AC-2 chỉ đi từ phía người NHẬN | **Đã sửa.** Thêm `accept`/`acceptances` (additive, không phá gì) + `_onAcceptanceArrived`. Bên nhận báo TRƯỚC rồi mới join. 2 test hồi quy, 26/26 xanh |
 | 2026-08-21 | Dogfood Kilo — vai người mới | App tự bắn `SelfChosen(kDemoContacts.first)` lúc dựng bloc, nên hai máy mở lên là cùng vai `long` và LiveKit đá một cái ra. Tái lập 100% | **Đã sửa.** Bỏ tự chọn hộ: cờ `identityChosen`, chưa bấm thì chưa vào phòng chờ |
 | 2026-08-21 | Dogfood Kilo — vai khó tính hình thức | Chip "Long" tô xanh kèm tick trong khi app chưa hề chọn ai, và chip đang-chọn có `onTap: null` nên bấm vào không có tác dụng gì — người dùng kẹt ở màn đầu. Chỉ lộ khi nhìn screenshot; dump accessibility tree không thấy | **Đã sửa.** Chưa chọn thì không chip nào tô xanh, cả hai đều bấm được; nhãn đổi thành "Chọn máy này là ai để bắt đầu", và giấu danh sách gọi cho tới khi chọn xong |
+
+---
+
+## Bàn giao cho phiên sau
+
+**Đang ở**: pha I, vòng 1. `gate.py I` xanh 5/5 phần tự động; hai mục tay còn nợ:
+luồng lõi end-to-end (đang kẹt, xem §Blocker) và `/viper-dogfood` bước 3 (6 vai
+subagent — chưa chạy).
+
+**Quyết định về pha**: vòng này chạy **V → I → R**, bỏ P và E. Không deploy đi
+đâu (`PRD.md §7`) và không có người dùng để đo. Lưu ý: khai "vòng này chỉ V+I"
+là cơ chế của đường intake — đường phỏng vấn luôn đủ 5 pha, nên bỏ P/E phải ghi
+một dòng `DECISIONS.md` theo luật #1. **Chưa ghi.**
+
+### Máy móc — chỗ này quan trọng nhất với phiên mới
+
+Repo sống ở **máy của Authority**, không phải máy chạy Claude:
+
+```
+long@longs-Mac-mini.local:~/demo_call_viper      ← BẢN DUY NHẤT
+```
+
+Phiên Claude chạy trên một Mac mini khác và điều khiển qua SSH. Lối tắt đã cấu
+hình trong `~/.ssh/config` của máy đó:
+
+```
+Host longmac
+  HostName longs-Mac-mini.local
+  Port 22
+  User long
+  IdentityFile ~/.ssh/viper_agent_key
+  IdentitiesOnly yes        # BẮT BUỘC — máy có nhiều khoá, chào nhầm là bị từ chối
+```
+
+Mọi lệnh đi qua `ssh longmac '...'`. Script Python dài thì **truyền qua stdin**
+(`ssh longmac 'cd ~/demo_call_viper && python3 -' < script.py`) — heredoc lồng
+trong ssh bị zsh nuốt mất dấu `?` và dấu nháy.
+
+**Đẩy GitHub**: máy Authority không có credential. Đường vòng: từ máy chạy Claude
+`git fetch longmac:demo_call_viper main` rồi
+`git push -c credential.helper='!gh auth git-credential' origin <sha>:main`.
+
+### Thiết bị
+
+| Serial | Là gì | Vai |
+|---|---|---|
+| `0000NX25A8007794` | Honor ELA-LX2, máy thật, đã authorized | Minh |
+| `emulator-5554` | Pixel_4_XL | Long |
+| `emulator-5556` | bản clone AVD | (đang tắt app) |
+
+`adb` ở `~/Library/Android/sdk/platform-tools/adb` — không có trong PATH của
+shell SSH, phải gọi đường dẫn đầy đủ. Chụp màn hình: `screencap` rồi `pull` rồi
+`scp -P 22 -i ~/.ssh/viper_agent_key -o IdentitiesOnly=yes` về mà xem.
+
+**Flutter**: máy Authority có 3.41.9 (đúng bản ghim) nhưng `PATH` trỏ 3.44.5
+trước. Makefile tự dò nên `make` luôn đúng bản; gọi `flutter` trần thì sai bản.
+
+### Việc tiếp theo, đúng thứ tự
+
+1. `ssh longmac 'cd ~/demo_call_viper && make deploy'` rồi cài lại 2 máy, gọi
+   lại. Đọc `adb logcat -s flutter` xem `debugPrint` mới nói gì.
+2. Gọi thông rồi → đi hết `CHECKLIST.md` (17 ca; 3 ca cần tai người, Authority
+   nghe hộ).
+3. `$viper-dogfood` bước 3 trong Kilo trên máy Authority.
+4. Ghi dòng `DECISIONS.md` bỏ P/E, rồi pha R.
+
+### Lưu ý về Kilo
+
+Kilo đã chạy dogfood hai lượt và **chẩn đoán rất tốt** — nó tìm ra lỗ thiếu tín
+hiệu `accept` làm luồng lõi chưa bao giờ nối được. Nhưng **cả hai lần nó báo
+"đã sửa" mà trên đĩa không có gì**: `git status` sạch, không file nào đổi.
+Đọc báo cáo của nó như **chẩn đoán**, và luôn kiểm lại bằng `git status` /
+`grep` trước khi tin là đã sửa.

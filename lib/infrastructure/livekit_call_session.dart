@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:livekit_client/livekit_client.dart' as lk;
 
 import '../config/kaicall_config.dart';
@@ -75,9 +76,31 @@ class LiveKitCallSession implements CallSessionPort {
 
     try {
       await room.connect(config.serverUrl.trim(), token);
-      // Bật mic + cam ngay: demo là cuộc gọi video (PRD.md §3 AC-2).
+    } catch (e) {
+      _events.add(const SessionEnded(CallEndReason.failed));
+      rethrow;
+    }
+
+    // Bật mic + cam SAU khi đã vào phòng, và từng cái một, KHÔNG để lỗi ở đây
+    // đánh sập cuộc gọi. Một cuộc gọi không có hình vẫn là một cuộc gọi.
+    //
+    // Vì sao quan trọng: camera giả của emulator có thể ném lỗi. Bản đầu gộp
+    // chung với connect trong một try nên lỗi bật cam bị hiểu là "không vào
+    // được phòng" — máy đó rời phòng, máy kia thấy đối phương thoát rồi cũng
+    // về danh bạ. MỘT lỗi camera ở một đầu kéo sập cả hai. Tìm ra khi chạy
+    // thật trên emulator + máy Honor 2026-08-21.
+    try {
       await room.localParticipant?.setMicrophoneEnabled(true);
+    } catch (e) {
+      debugPrint('KaiCall — không bật được mic, vẫn ở trong cuộc gọi: $e');
+    }
+    try {
       await room.localParticipant?.setCameraEnabled(true);
+    } catch (e) {
+      debugPrint('KaiCall — không bật được camera, vẫn ở trong cuộc gọi: $e');
+    }
+
+    try {
       // Bên kia đã ở trong phòng trước mình thì không có ParticipantConnected
       // nào bắn ra — phải tự kiểm một lần, nếu không màn hình đứng ở "đang
       // chờ người kia vào" dù họ đã ở đó.
@@ -85,8 +108,7 @@ class LiveKitCallSession implements CallSessionPort {
         _events.add(const PeerJoined());
       }
     } catch (e) {
-      _events.add(const SessionEnded(CallEndReason.failed));
-      rethrow;
+      debugPrint('KaiCall — kiểm người trong phòng lỗi: $e');
     }
   }
 
