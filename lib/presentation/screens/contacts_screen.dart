@@ -90,8 +90,11 @@ class ContactsScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    const Text('Chưa vào được máy chủ — chưa gọi được',
-                        style: TextStyle(fontSize: T.textBase, color: T.danger)),
+                    Text(
+                        state.kickedByDuplicate
+                            ? 'Máy khác đang dùng danh tính "${state.self.displayName}"'
+                            : 'Chưa vào được máy chủ — chưa gọi được',
+                        style: const TextStyle(fontSize: T.textBase, color: T.danger)),
                     if (state.lobbyError != null) ...<Widget>[
                       const SizedBox(height: T.spaceSm),
                       // Lý do thô của SDK. Xấu, nhưng đây là màn của người thử
@@ -102,13 +105,23 @@ class ContactsScreen extends StatelessWidget {
                               fontSize: T.textSm, color: T.textMuted)),
                     ],
                     const SizedBox(height: T.spaceSm),
-                    TextButton(
-                      key: const Key('retry-lobby'),
-                      onPressed: onRetry,
-                      style: TextButton.styleFrom(padding: EdgeInsets.zero),
-                      child: const Text('Thử lại',
-                          style: TextStyle(fontSize: T.textBase, color: T.primary)),
-                    ),
+                    // Bị đá vì trùng danh tính thì KHÔNG mời "Thử lại": bấm vào
+                    // là vào lại rồi đá ngược máy kia ra, hai máy đá nhau vô
+                    // hạn. Việc đúng là đổi vai ở thẻ trên.
+                    if (state.kickedByDuplicate)
+                      const Text(
+                        'Chọn người khác ở thẻ "Máy này là ai?" phía trên — '
+                        'hai máy không dùng chung một người được.',
+                        style: TextStyle(fontSize: T.textSm, color: T.text),
+                      )
+                    else
+                      TextButton(
+                        key: const Key('retry-lobby'),
+                        onPressed: onRetry,
+                        style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                        child: const Text('Thử lại',
+                            style: TextStyle(fontSize: T.textBase, color: T.primary)),
+                      ),
                   ],
                 ),
               ),

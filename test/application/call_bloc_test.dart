@@ -17,7 +17,7 @@ class FakeSignaling implements SignalingPort {
   final StreamController<CallInvite> _invites = StreamController<CallInvite>.broadcast();
   final StreamController<CallInvite> _rejections = StreamController<CallInvite>.broadcast();
   final StreamController<CallInvite> _cancels = StreamController<CallInvite>.broadcast();
-  final StreamController<bool> _connected = StreamController<bool>.broadcast();
+  final StreamController<LobbyStatus> _lobby = StreamController<LobbyStatus>.broadcast();
 
   final List<String> calls = <String>[];
 
@@ -28,12 +28,12 @@ class FakeSignaling implements SignalingPort {
   @override
   Stream<CallInvite> get cancellations => _cancels.stream;
   @override
-  Stream<bool> get connected => _connected.stream;
+  Stream<LobbyStatus> get lobby => _lobby.stream;
 
   @override
   Future<void> connect({required String selfId, required String displayName}) async {
     calls.add('connect');
-    _connected.add(true);
+    _lobby.add(const LobbyStatus.connected());
   }
 
   @override
@@ -44,6 +44,9 @@ class FakeSignaling implements SignalingPort {
   Future<void> reject(CallInvite i) async => calls.add('reject:${i.fromId}');
   @override
   Future<void> cancel(CallInvite i) async => calls.add('cancel:${i.toId}');
+
+  void kickDuplicate() =>
+      _lobby.add(const LobbyStatus.disconnected(duplicateIdentity: true));
 
   void receiveInvite(CallInvite i) => _invites.add(i);
   void receiveRejection(CallInvite i) => _rejections.add(i);
@@ -116,7 +119,7 @@ void main() {
 
   /// Đẩy bloc vào trạng thái "phòng chờ đã thông" — điều kiện để gọi được.
   Future<void> lobbyUp() async {
-    bloc.add(const LobbyConnectionChanged(connected: true));
+    bloc.add(const LobbyConnectionChanged(LobbyStatus.connected()));
     await bloc.stream.firstWhere((CallUiState s) => s.lobbyConnected);
   }
 
@@ -125,6 +128,18 @@ void main() {
         toId: 'long',
         roomName: 'kaicall-long-minh',
       );
+
+  test('dogfood 2026-08-21 · bị đá vì trùng danh tính → nói RÕ, và không mời thử lại', () async {
+    // Hai emulator cùng chọn "Long": LiveKit đá máy vào trước ra. Bản đầu chỉ
+    // hiện "chưa vào được máy chủ" trống trơn, và nút Thử lại làm hai máy đá
+    // nhau vô hạn. Giờ state phải mang cờ để UI hướng người dùng đi đổi vai.
+    await lobbyUp();
+    signaling.kickDuplicate();
+    await bloc.stream.firstWhere((CallUiState s) => !s.lobbyConnected);
+    expect(bloc.state.kickedByDuplicate, isTrue);
+    expect(bloc.state.lobbyError, contains('Long'));
+    expect(bloc.state.canCall, isFalse);
+  });
 
   test('AC-1 · bấm gọi khi phòng chờ CHƯA thông thì không làm gì', () async {
     bloc.add(const CallRequested(minh));

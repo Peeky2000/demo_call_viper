@@ -116,4 +116,4 @@ Thứ tìm được khi dùng thử nhưng chưa sửa (nhỏ thì sửa ngay, n
 
 | Ngày | Vai phát hiện | Vấn đề | Xử lý |
 |---|---|---|---|
-| | | | |
+| 2026-08-21 | Dogfood Kilo, đợt dựng 2 emulator | Hai máy cùng mặc định chọn "Long" → LiveKit đá máy vào trước ra vì trùng identity. App chỉ hiện "Chưa vào được máy chủ" **trống trơn**, không nói bị đá, không nói phải làm gì. Nút "Thử lại" còn tệ hơn: bấm là vào lại rồi đá ngược máy kia — hai máy đá nhau vô hạn | **Đã sửa.** `RoomDisconnectedEvent.reason` trước bị vứt, giờ giữ lại: banner nói thẳng "Máy khác đang dùng danh tính Long" và thay nút Thử lại bằng hướng dẫn đổi vai. Thêm test cho ca này (24/24 xanh) |

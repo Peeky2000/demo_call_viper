@@ -10,6 +10,22 @@ abstract interface class TokenProvider {
   Future<String> tokenFor({required String roomName, required String identity, required String displayName});
 }
 
+/// Trạng thái phòng chờ. Mang theo lý do vì sao rớt — "mất kết nối" chung
+/// chung là vô dụng với người dùng: bị đá vì trùng danh tính cần cách xử KHÁC
+/// hẳn mất mạng (đổi vai, chứ không phải thử lại).
+class LobbyStatus {
+  const LobbyStatus.connected()
+      : connected = true,
+        duplicateIdentity = false;
+  const LobbyStatus.disconnected({this.duplicateIdentity = false})
+      : connected = false;
+
+  final bool connected;
+
+  /// Máy khác vừa vào phòng chờ bằng đúng danh tính này, nên mình bị đá ra.
+  final bool duplicateIdentity;
+}
+
 /// Kênh báo cuộc gọi — phòng chờ. Không phải media.
 abstract interface class SignalingPort {
   Future<void> connect({required String selfId, required String displayName});
@@ -21,7 +37,7 @@ abstract interface class SignalingPort {
   Stream<CallInvite> get invites;
   Stream<CallInvite> get rejections;
   Stream<CallInvite> get cancellations;
-  Stream<bool> get connected;
+  Stream<LobbyStatus> get lobby;
 }
 
 /// Phiên gọi thật — tiếng + hình.

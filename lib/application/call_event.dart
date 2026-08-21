@@ -13,8 +13,8 @@ class SelfChosen extends CallEvent {
 }
 
 class LobbyConnectionChanged extends CallEvent {
-  const LobbyConnectionChanged({required this.connected});
-  final bool connected;
+  const LobbyConnectionChanged(this.status);
+  final LobbyStatus status;
 }
 
 /// Bấm nút gọi ở danh bạ.

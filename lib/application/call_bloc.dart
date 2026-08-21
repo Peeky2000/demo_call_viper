@@ -49,7 +49,7 @@ class CallBloc extends Bloc<CallEvent, CallUiState> {
       _signaling.invites.listen((CallInvite i) => add(InviteArrived(i))),
       _signaling.rejections.listen((CallInvite i) => add(RejectionArrived(i))),
       _signaling.cancellations.listen((CallInvite i) => add(CancellationArrived(i))),
-      _signaling.connected.listen((bool c) => add(LobbyConnectionChanged(connected: c))),
+      _signaling.lobby.listen((LobbyStatus st) => add(LobbyConnectionChanged(st))),
       _session.events.listen((CallSessionEvent e) => add(SessionSignal(e))),
     ]);
   }
@@ -80,8 +80,12 @@ class CallBloc extends Bloc<CallEvent, CallUiState> {
 
   void _onLobbyChanged(LobbyConnectionChanged e, Emitter<CallUiState> emit) {
     emit(state.copyWith(
-      lobbyConnected: e.connected,
-      clearLobbyError: e.connected,
+      lobbyConnected: e.status.connected,
+      clearLobbyError: e.status.connected,
+      kickedByDuplicate: e.status.duplicateIdentity,
+      lobbyError: e.status.duplicateIdentity
+          ? 'Máy khác vừa vào bằng danh tính "${state.self.displayName}".'
+          : null,
     ));
   }
 

@@ -30,7 +30,7 @@ class LiveKitSignaling implements SignalingPort {
   final StreamController<CallInvite> _invites = StreamController<CallInvite>.broadcast();
   final StreamController<CallInvite> _rejections = StreamController<CallInvite>.broadcast();
   final StreamController<CallInvite> _cancellations = StreamController<CallInvite>.broadcast();
-  final StreamController<bool> _connected = StreamController<bool>.broadcast();
+  final StreamController<LobbyStatus> _lobby = StreamController<LobbyStatus>.broadcast();
 
   @override
   Stream<CallInvite> get invites => _invites.stream;
@@ -39,7 +39,7 @@ class LiveKitSignaling implements SignalingPort {
   @override
   Stream<CallInvite> get cancellations => _cancellations.stream;
   @override
-  Stream<bool> get connected => _connected.stream;
+  Stream<LobbyStatus> get lobby => _lobby.stream;
 
   @override
   Future<void> connect({required String selfId, required String displayName}) async {
@@ -49,8 +49,14 @@ class LiveKitSignaling implements SignalingPort {
     _room = room;
     _listener = room.createListener()
       ..on<lk.DataReceivedEvent>(_onData)
-      ..on<lk.RoomDisconnectedEvent>((_) => _connected.add(false))
-      ..on<lk.RoomReconnectedEvent>((_) => _connected.add(true));
+      ..on<lk.RoomDisconnectedEvent>((lk.RoomDisconnectedEvent e) {
+        // GIỮ LẤY reason. Vứt nó đi là người dùng nhận một câu "mất kết nối"
+        // không nói được phải làm gì — đúng lỗi dogfood bắt được 2026-08-21.
+        _lobby.add(LobbyStatus.disconnected(
+          duplicateIdentity: e.reason == lk.DisconnectReason.duplicateIdentity,
+        ));
+      })
+      ..on<lk.RoomReconnectedEvent>((_) => _lobby.add(const LobbyStatus.connected()));
 
     final String token = await tokens.tokenFor(
       roomName: kLobbyRoom,
@@ -64,7 +70,7 @@ class LiveKitSignaling implements SignalingPort {
       // banner "chưa kết nối được" mà không bao giờ biết vì sao.
       throw Exception('Không vào được phòng chờ ${config.serverUrl.trim()} — $e');
     }
-    _connected.add(true);
+    _lobby.add(const LobbyStatus.connected());
   }
 
   void _onData(lk.DataReceivedEvent event) {
