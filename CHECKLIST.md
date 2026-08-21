@@ -45,6 +45,12 @@ Cột **Máy thật?** = ca đó bắt buộc phải có máy Android thật, em
 | 15 | AC-7 | Đang gọi, A bấm **Home** rồi quay lại sau ~20 giây | Vẫn đang trong cuộc gọi, tiếng vẫn thông | ☐ |
 | 16 | AC-7 | Đang gọi, A **vuốt tắt app** | B thấy cuộc gọi kết thúc **ngay**, không treo màn chờ | ☐ |
 | 17 | — | Sửa `KAICALL_LIVEKIT_API_KEY` thành rỗng rồi `make dev` | Màn chặn S0 nói rõ thiếu biến nào | ☐ |
+| 18 | AC-5 | Gỡ quyền mic/cam ở **B** → mở app B → A gọi → B bấm **Nghe** | B hiện hộp thoại quyền hệ thống; cấp xong thì **vào được cuộc gọi**. Bỏ mặc hộp thoại thì A phải về "Không trả lời" sau 30 giây, **không đứng mãi** | ☐ |
+
+Ca 18 khác ca 12: ca 12 thiếu quyền ở **máy gọi**, chặn ngay trước khi gọi. Ca
+18 thiếu quyền ở **máy nhận** — app vẫn gọi được, chuông vẫn reo, chỉ chết lúc
+bấm Nghe. Đây đúng là lỗi đã ăn mất một buổi ngày 2026-08-21 (`STATE.md §Blocker`),
+nên đừng bỏ.
 
 ---
 
@@ -53,7 +59,7 @@ Cột **Máy thật?** = ca đó bắt buộc phải có máy Android thật, em
 **Success metric** (`PRD.md §6`): chạy trọn **7/7 AC** mà **không lần nào phải khởi
 động lại app**.
 
-- 17/17 dòng xanh → đạt, nghiệm thu được
+- 18/18 dòng xanh → đạt, nghiệm thu được
 - Dòng nào đỏ → ghi vào `STATE.md §Phát hiện từ dogfood chưa xử`, sửa rồi chạy lại
 
 Ca 3, 4, 6 cần máy thật. Chưa có máy thì bỏ qua ba dòng đó và ghi rõ là **chưa

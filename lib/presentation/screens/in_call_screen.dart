@@ -66,7 +66,11 @@ class InCallScreen extends StatelessWidget {
                     // Chưa có hình bên kia → avatar + tên, KHÔNG để khung đen
                     // trơn (DESIGN-SYSTEM.md §5, khuôn "rỗng").
                     Positioned.fill(
-                      child: remote != null
+                      // peerHasVideo chứ KHÔNG phải remote != null: tắt camera
+                      // chỉ mute track, track vẫn còn đó. Đọc mỗi track thì bên
+                      // kia tắt cam là mình vẽ ra khung đen trơn, không avatar
+                      // không lời giải thích (CHECKLIST ca 5, 2026-08-21).
+                      child: (remote != null && state.peerHasVideo)
                           ? lk.VideoTrackRenderer(remote)
                           : Column(
                               mainAxisAlignment: MainAxisAlignment.center,

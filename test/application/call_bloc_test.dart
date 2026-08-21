@@ -309,6 +309,27 @@ void main() {
     expect(session.calls, contains('leave'));
   });
 
+  test('CHECKLIST ca 5 · bên kia TẮT CAMERA khác hẳn bên kia RỜI ĐI', () async {
+    signaling.receiveInvite(inviteFromMinh());
+    await bloc.stream.firstWhere((CallUiState s) => s.status == CallStatus.incoming);
+    bloc.add(const CallAccepted());
+    await bloc.stream.firstWhere((CallUiState s) => s.status == CallStatus.inCall);
+
+    session.emit(const PeerVideoChanged(hasVideo: true));
+    await bloc.stream.firstWhere((CallUiState s) => s.peerHasVideo);
+
+    // Tắt camera chỉ MUTE track, track vẫn nằm đó. Bản cũ để UI đọc thẳng
+    // track nên vẫn tưởng còn hình và vẽ ra khung đen trơn — không avatar,
+    // không một chữ giải thích (đo trên máy thật 2026-08-21).
+    session.emit(const PeerVideoChanged(hasVideo: false));
+    await bloc.stream.firstWhere((CallUiState s) => !s.peerHasVideo);
+
+    // Và quan trọng không kém: cuộc gọi vẫn phải sống. Tắt cam không phải cúp máy.
+    expect(bloc.state.status, CallStatus.inCall);
+    expect(bloc.state.endReason, isNull);
+    expect(session.calls, isNot(contains('leave')));
+  });
+
   test('AC-6 · mất kết nối → hiện đang kết nối lại, rồi hết thì thôi', () async {
     signaling.receiveInvite(inviteFromMinh());
     await bloc.stream.firstWhere((CallUiState s) => s.status == CallStatus.incoming);

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:livekit_client/livekit_client.dart' as lk;
@@ -57,14 +59,48 @@ class KaiCallApp extends StatelessWidget {
 
 /// Chọn màn theo trạng thái máy trạng thái — UI không tự quyết gì
 /// (ARCHITECTURE.md §8).
-class CallRouter extends StatelessWidget {
+class CallRouter extends StatefulWidget {
   const CallRouter({super.key, required this.session, required this.permissions});
 
   final CallSessionPort session;
   final PermissionsPort permissions;
 
-  lk.Room? get _room => session is LiveKitCallSession
-      ? (session as LiveKitCallSession).room
+  @override
+  State<CallRouter> createState() => _CallRouterState();
+}
+
+class _CallRouterState extends State<CallRouter> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  /// Thoát hẳn app phải NGẮT tường minh.
+  ///
+  /// Vuốt app khỏi recents mà không làm gì thì tiến trình vẫn sống, vẫn giữ
+  /// mic/cam, vẫn nằm trong phòng — bên kia ngồi nhìn khung hình chết, đo 90
+  /// giây vẫn chưa thoát (CHECKLIST ca 16, 2026-08-21). ARCHITECTURE.md §7d
+  /// hứa điều này từ pha V mà chưa ai hiện thực.
+  ///
+  /// CHỈ bắt `detached`. `paused` là bấm Home — AC-7 đòi cuộc gọi vẫn chạy khi
+  /// chuyển nền ngắn, ngắt ở đó là phá đúng thứ vừa nghiệm thu (ca 15).
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState lifecycle) {
+    debugPrint('KaiCall/lk — vòng đời: ${lifecycle.name}');
+    if (lifecycle == AppLifecycleState.detached) {
+      unawaited(widget.session.leave());
+    }
+  }
+
+  lk.Room? get _room => widget.session is LiveKitCallSession
+      ? (widget.session as LiveKitCallSession).room
       : null;
 
   @override
@@ -87,7 +123,7 @@ class CallRouter extends StatelessWidget {
       builder: (BuildContext context, CallUiState state) {
         if (state.permissionDenied) {
           return PermissionScreen(
-            permissions: permissions,
+            permissions: widget.permissions,
             onDismiss: () => bloc.add(const PermissionNoticeDismissed()),
           );
         }
