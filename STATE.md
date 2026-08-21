@@ -133,14 +133,20 @@ Thứ tìm được khi dùng thử nhưng chưa sửa (nhỏ thì sửa ngay, n
 
 ## Bàn giao cho phiên sau
 
-**Đang ở**: pha I, vòng 1. `gate.py I` xanh 5/5 phần tự động; hai mục tay còn nợ:
-luồng lõi end-to-end (đang kẹt, xem §Blocker) và `/viper-dogfood` bước 3 (6 vai
-subagent — chưa chạy).
+**Đang ở**: pha I, vòng 1. Luồng lõi **đã nối được** và đã đi hết `CHECKLIST.md`
+một lượt trên emulator(Long) + Honor(Minh):
+
+- **16 ca xanh** (ca 4 mới xanh phần giao diện)
+- **1 ca đỏ**: ca 15 — AC-7, cần Authority quyết, xem §Phát hiện
+- **1 ca chưa kiểm**: ca 3, cùng phần tiếng của ca 4 và ca 15 — không nghe được
+  vì mic máy ảo là giả, xem §Phát hiện
+
+Còn nợ: `/viper-dogfood` bước 3 (6 vai subagent — chưa chạy).
 
 **Quyết định về pha**: vòng này chạy **V → I → R**, bỏ P và E. Không deploy đi
 đâu (`PRD.md §7`) và không có người dùng để đo. Lưu ý: khai "vòng này chỉ V+I"
 là cơ chế của đường intake — đường phỏng vấn luôn đủ 5 pha, nên bỏ P/E phải ghi
-một dòng `DECISIONS.md` theo luật #1. **Chưa ghi.**
+một dòng `DECISIONS.md` theo luật #1. **VẪN CHƯA GHI** — món nợ cũ nhất ở đây.
 
 ### Máy móc — chỗ này quan trọng nhất với phiên mới
 
@@ -192,12 +198,55 @@ trước. Makefile tự dò nên `make` luôn đúng bản; gọi `flutter` tr�
 
 ### Việc tiếp theo, đúng thứ tự
 
-1. `ssh longmac 'cd ~/demo_call_viper && make deploy'` rồi cài lại 2 máy, gọi
-   lại. Đọc `adb logcat -s flutter` xem `debugPrint` mới nói gì.
-2. Gọi thông rồi → đi hết `CHECKLIST.md` (18 ca; 3 ca cần tai người, Authority
-   nghe hộ).
-3. `$viper-dogfood` bước 3 trong Kilo trên máy Authority.
-4. Ghi dòng `DECISIONS.md` bỏ P/E, rồi pha R.
+1. **Authority chốt AC-7** — ca 15 đỏ vì sau ~10 giây ở nền thì kết nối đứt và
+   không tự hồi. Hai đường (a) hạ AC-7 xuống "~5 giây" và ghi ca 15 chưa đạt,
+   hoặc (b) làm foreground service ở vòng sau. Chốt xong ghi `DECISIONS.md`.
+2. Ghi dòng `DECISIONS.md` bỏ P/E — nợ từ trước, luật #1.
+3. Kiểm nốt phần tiếng (ca 3, và phần tiếng của ca 4/15) khi máy ảo chịu đổ
+   tiếng ra thiết bị đúng. Chỉ MỘT chiều có tiếng thật: nói vào máy Honor, nghe
+   ở máy chạy emulator.
+4. `$viper-dogfood` bước 3 trong Kilo trên máy Authority.
+5. Pha R.
+
+### Chạy trên MỘT MÁY KHÁC (Codex, hoặc bất kỳ ai pull repo về)
+
+Repo tự đứng được, nhưng có đúng **một cái bẫy chặn cứng ngay bước đầu**:
+
+**`deployment/local/.env` KHÔNG có trong repo** — `.gitignore` chặn `.env` và
+`.env.*` ở mọi cấp. Pull về là thiếu, và thiếu thì `make dev`/`make deploy` từ
+chối chạy, còn app dựng lên sẽ hiện màn chặn S0 "Chưa chạy được". Không phải
+hỏng, là cố ý (`DECISIONS.md` 2026-08-20: APK mang theo API secret là ai giải
+nén cũng ký được token vào mọi phòng).
+
+Dựng lại như sau:
+
+```bash
+mkdir -p deployment/local
+cp deployment/.env.example deployment/local/.env
+# rồi điền 4 biến — lấy từ LiveKit Cloud, hoặc xin Authority
+make doctor        # kiểm đủ 4 biến + đúng Flutter 3.41.9 + đếm thiết bị
+```
+
+**Chạy được gì mà không cần thiết bị Android:**
+
+```bash
+make check    # analyzer, phải sạch
+make test     # 29 test, phải xanh — không cần máy, không cần mạng, không cần .env
+```
+
+29 test đó là chỗ phần lớn AC được kiểm (`TECHSTACK.md §3`): domain tách hẳn
+khỏi LiveKit nên ca biên chạy trọn trên máy tính.
+
+**KHÔNG kiểm được nếu không có máy Android**: toàn bộ `CHECKLIST.md`. Nó cần hai
+đầu — ít nhất một máy thật, vì emulator mic là giả.
+
+**Đọc theo thứ tự này cho nhanh**: `AGENTS.md` (luật) → `STATE.md` mục Gate và
+§Phát hiện (đang nợ gì) → `context/PRD.md §3` (7 AC) → `CHECKLIST.md` (cách
+nghiệm thu). `VIPER.md` chỉ tra khi cần, nó dài.
+
+**Cảnh báo tay lái**: từ pha I trở đi luật #2 cấm hỏi Authority. Đừng dừng lại
+hỏi — tự quyết theo context rồi ghi `DECISIONS.md`. Ngoại lệ duy nhất đang mở là
+AC-7 ở trên, và nó đã được hỏi rồi.
 
 ### Lưu ý về Kilo
 
