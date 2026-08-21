@@ -43,8 +43,13 @@ class FakeSignaling implements SignalingPort {
   Future<void> disconnect() async => calls.add('disconnect');
   @override
   Future<void> invite(CallInvite i) async => calls.add('invite:${i.roomName}');
+  bool failAccept = false;
+
   @override
-  Future<void> accept(CallInvite i) async => calls.add('accept:${i.fromId}');
+  Future<void> accept(CallInvite i) async {
+    calls.add('accept:${i.fromId}');
+    if (failAccept) throw StateError('data channel hỏng');
+  }
   @override
   Future<void> reject(CallInvite i) async => calls.add('reject:${i.fromId}');
   @override
@@ -224,6 +229,33 @@ void main() {
     expect(signaling.calls, contains('accept:minh'));
     expect(signaling.calls.indexOf('accept:minh'),
         lessThan(session.calls.indexOf('join:kaicall-long-minh') + 999));
+  });
+
+  test('/review 2026-08-21 · gói "đã nghe" LẠC (sai người) thì bỏ qua, không kéo mình vào phòng', () async {
+    // Phòng chờ là kênh chung và tên phòng tất định, nên ai trong lobby cũng
+    // tính ra được. Khớp thiếu trường là đủ để một gói bịa kéo mình vào cuộc
+    // gọi rồi bật mic/cam.
+    await lobbyUp();
+    bloc.add(const CallRequested(minh));
+    await bloc.stream.firstWhere((CallUiState s) => s.status == CallStatus.outgoing);
+
+    signaling.receiveAcceptance(const CallInvite(
+      fromId: 'long', toId: 'nguoi-la', roomName: 'kaicall-long-minh'));
+
+    await Future<void>.delayed(Duration.zero);
+    expect(bloc.state.status, CallStatus.outgoing); // vẫn đang gọi, không bị kéo đi
+    expect(session.calls.where((String c) => c.startsWith('join')), isEmpty);
+  });
+
+  test('/review 2026-08-21 · báo "đã nghe" HỎNG thì vẫn phải vào phòng', () async {
+    // Chặn đường vào phòng của chính mình chỉ vì không báo được cho người kia
+    // là đổi một cuộc gọi hỏng lấy một cuộc gọi hỏng nặng hơn.
+    signaling.failAccept = true;
+    signaling.receiveInvite(inviteFromMinh());
+    await bloc.stream.firstWhere((CallUiState s) => s.status == CallStatus.incoming);
+    bloc.add(const CallAccepted());
+    await bloc.stream.firstWhere((CallUiState s) => s.status == CallStatus.inCall);
+    expect(session.calls, contains('join:kaicall-long-minh'));
   });
 
   test('AC-3 · bấm Từ chối → báo cho bên kia rồi về danh bạ, không treo', () async {

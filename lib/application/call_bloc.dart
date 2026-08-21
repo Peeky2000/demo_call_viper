@@ -141,9 +141,15 @@ class CallBloc extends Bloc<CallEvent, CallUiState> {
   /// nối được, mà 24 test vẫn xanh vì test AC-2 chỉ đi từ phía người NHẬN.
   Future<void> _onAcceptanceArrived(AcceptanceArrived e, Emitter<CallUiState> emit) async {
     if (state.status != CallStatus.outgoing) return;
-    if (e.invite.fromId != state.self.id) return; // lời đồng ý cho cuộc khác
     final Contact? peer = state.peer;
     if (peer == null) return;
+    // Khớp TRỌN lời mời, không chỉ một trường. Phòng chờ là kênh chung: gói
+    // 'accept' lạc hoặc bịa mà chỉ khớp tên phòng thì đủ kéo mình vào một cuộc
+    // gọi và bật mic/cam — mà tên phòng lại tất định nên ai trong lobby cũng
+    // tính ra được. Nhận xét của /review qua Kilo 2026-08-21.
+    if (e.invite.fromId != state.self.id) return;
+    if (e.invite.toId != peer.id) return;
+    if (e.invite.roomName != roomNameFor(state.self.id, peer.id)) return;
     _cancelRingTimer();
     await _enterCall(e.invite, peer, emit);
   }
@@ -169,10 +175,18 @@ class CallBloc extends Bloc<CallEvent, CallUiState> {
       _end(emit, CallEndReason.failed);
       return;
     }
-    // BÁO CHO BÊN GỌI TRƯỚC khi tự vào phòng. Vào trước rồi mới báo thì bên kia
-    // mất thêm ngần ấy giây ngồi nhìn "Đang gọi…", và nếu join hỏng thì họ chờ
-    // hết 30 giây vô ích.
-    await _signaling.accept(invite);
+    // BÁO CHO BÊN GỌI TRƯỚC khi tự vào phòng — vào trước mới báo thì bên kia
+    // mất thêm ngần ấy giây ngồi nhìn "Đang gọi…".
+    //
+    // Nhưng CÓ HẠN GIỜ và KHÔNG ném lỗi: báo hỏng hay data channel treo thì
+    // mình vẫn phải vào phòng. Chặn đường vào phòng của chính mình chỉ vì
+    // không báo được cho người kia là đổi một cuộc gọi hỏng lấy một cuộc gọi
+    // hỏng nặng hơn. Bên kia hỏng nhất cũng chỉ hết giờ 30 giây rồi về danh bạ.
+    try {
+      await _signaling.accept(invite).timeout(const Duration(seconds: 2));
+    } catch (err) {
+      debugPrint('KaiCall — không báo được "đã nghe" cho bên gọi: $err');
+    }
     await _enterCall(invite, peer, emit);
   }
 
